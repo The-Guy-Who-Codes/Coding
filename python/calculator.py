@@ -17,9 +17,9 @@ def division(a, b):
   return x
 
 while True:
-  a = input("what is your first number: ")
-  b = input("what is your second number: ")
-  operator = input("what operation do you want to complete: ")
+  a = input("what is your first number:")
+  b = input("what is your second number")
+  operator = input("what operation do you want to complete")
   
   if a == "ANS":
     a = memory[0]

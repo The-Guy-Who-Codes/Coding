@@ -15,7 +15,7 @@ var numbers_chart = {
 
 function setup() {
     createCanvas(1000, 1000);
-    background(153);
+    background(230, 230, 250);
     frameRate(1);
 }
 function draw() {    

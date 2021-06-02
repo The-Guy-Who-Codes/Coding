@@ -18,7 +18,14 @@ number = {
   12:"Ace"
 }
 
-def card():
+
+while True:
+  BetSize = int(input("what is your bet size you have {} in the bank".format(StackSize)))
+  StackSize -= BetSize
+  
+  
+  
+  def card():
     x = random.randint(0,12)
     card1 = {
     "name":number[x],
@@ -29,10 +36,6 @@ def card():
     if x == 12:
       card1["value"] = 11
     return card1
-
-while True:
-  BetSize = int(input("what is your bet size, you have {} in the bank: ".format(StackSize)))
-  StackSize -= BetSize
   
   playerCard = card()
   playerCard2 = card()

@@ -42,7 +42,7 @@ $(document).ready( function() {
         if(seconds < 10){
             seconds = "0" + seconds;
         }
-        if(hours > 12){
+        if(hours >+ 12){
             hours = hours - 12;
             meridian = "PM";
         }
