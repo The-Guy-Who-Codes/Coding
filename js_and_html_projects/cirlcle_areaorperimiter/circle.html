@@ -1,0 +1,26 @@
+<html>
+    <header>
+        <title>
+            Circles Area and Perimiter
+        </title>
+        <body>
+            <script>
+                var x = true;
+
+                while (x){
+                    var ask = prompt("do you want to find the area or the perimiter of a circle?");
+                    if (ask === "area"){
+                        var d = prompt("what is the diamiter of the circle?");
+                        var ans = 3.14159 * (d / 2) ** 2;
+                        confirm("the area is: " + ans);
+                    }
+                    else{
+                        var d = prompt("what is the diamiter of the circle?");
+                        var ans = 3.14159 * d;
+                        confirm("the perimiter is: " + ans);
+                    }
+                }
+            </script>
+        </body>
+    </header>
+</html>

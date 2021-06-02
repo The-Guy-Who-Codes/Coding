@@ -1,0 +1,9 @@
+lmc_device_set_name('737 Keyboard','1C8A767F')
+lmc_print_devices()
+
+lmc_set_handler('737 Keyboard'), function(button,direction)
+	if (direction == 1) then return end
+	if (button == 65) then
+		lmc_send_keys({F9}a)
+	end
+)

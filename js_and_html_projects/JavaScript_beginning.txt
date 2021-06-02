@@ -1,0 +1,209 @@
+How to code in Javascript
+
+variables and Data:
+    to create one use the function "var":
+        for e.g. var alphabet = 12 / "hi" / true (integer, string, boolean);
+        (you only need to use var when creating a variable not when reasigning it)
+    Data types:
+        booleans:
+            A value which is either true or false
+        Numbers:
+            A single integer
+        String:
+            Somethhing inside quotes for e.g "hi bob"
+    Incrementing and Decrementing:
+        To increase a variables value by one then use ++ for example(var a = 0;   ++a;) a will be equall to 1
+        to decrease a variables value by one do the same just using --
+    Adding and Subtracting from variables:
+        insted of doing x = x + 5 then you can do x += 5
+        and for doing x = x - 5 you can do x -= 5
+        and divide /=
+        and times *=
+    Undefined:
+        this is what put in place of a variable if it is not assigned to Somethhing
+    Null:
+        this is when you want a varuable to be nothing you have to define null 
+        for e.g var a = null;
+
+Strings:
+    Adding strings:
+        to add two strings together use the add sign
+        for e.g. var a = "bo"; var b = "b"; var c = a + b
+        The result will be "bob" in one string
+        remember it won't put a space between the strings so if a space is required you must put it in one of the strings
+    Getting single characters:
+        use the name of the list [] and then in the brackets put the position of the character 
+        remember computers count from 0 so the 5th character would be [4] in the brackets
+        you can also join this with the + sign and do list[1] + list2[2];
+
+
+Booleans:
+    Logic operators:
+        &&:
+            this checks if two values are true and returns a boolean value
+        ||:
+            this checks if one of the values are true and outputs a boolean 
+            it will output true even if both values are true
+        !:
+            this reverses the boolean value of a variable
+            for e.g. var a = true; var b = !a; document.write(b); output = false
+        Javascript does && first so put || in brackets if you want to do || first
+    Comparing Numbers:
+        > , < , <= , >=:
+            this will compare two numbers or variables and will output a boolean value
+            for e.g.  var a = 24; var b = 26; a > b; output = false
+            if it is the same number then it will return false unless if you use the <= or >= which will include 
+            the same number as true
+        ===:
+            this ckecks if two numbers or variables are identical (number wise) it will return a boolean
+        ==:
+            refer book pg. 36
+
+Arrays:
+    To create an array:
+        put the meat of the array in square brackets []
+        you can put arrarys on not only one line for e.g.
+        var a = [
+            "hello",
+            23,
+            "sup",
+        ]
+    To get hold of a specific element:
+        use the name of the array[] and put square brackets at the end of the name and then inside put the value of which
+        element you want so for e.g. var a = [1, 2, 4, 5, 7]; console.log(a[0]); output = [1]
+        remember Javascript counts from 0!!!
+    Changing an elements value:
+        to change an ellements value do: var a = [1, 2, 3, 4, 5, 6, 9]; a[0] = 2; output = [2, 2, 3, 4, 5, 6, 9]
+    Undefined ellement:
+        to show that an ellement is undefined you can do: var a = [1, 2, undefined] 
+    
+Objects:
+    What is an object:
+        an object is allmost like a ddictionary in python
+        it is a special type of array where you can have assigned value pairs
+        for example to make one.  var a = {
+                                        cat: "hello",
+                                        dog: 23
+                                  }
+    Adding values:
+        to add a value pair do the name of the object[the name of the value in quotes] = "the value of the key" 
+    Combining arrays and objects:
+        refere book pg. 69
+
+Functions:    
+    Printing:
+        The ways to print:
+            document.write();
+            console.log();
+            alert();
+    strings:
+        length of a string and an array:
+         name of string .length;
+         you can also do this with an array
+        Getting specific parts of a string:
+            name of string .slice( start character number, end character number)
+            you can leave only one number in the brackets if you wnat the characters upto or from a certain character
+            remember spaces count as characters
+            for e.g.
+            var a = "hello everybody"; a.slice(4, 15);
+            output = "o everybody"
+        String to upper case:
+            name of string .toUpperCase();
+            remember Js is case sensitive
+        String to lower case:
+            name of list .toLowerCase();
+            remember Js is case sensitive
+    Arrays:
+        to find the length of an array:
+            name of the array .length()
+        to add an ellement to an arrray:
+            name of array .push(what you wnat to go in the ellement)
+        to add an ellement to the start of an array:
+            name of array .unshift(what you wnat in the ellement)
+        to remove the last ellement of an array:
+            name of the array .pop()
+        to remove an ellement from the beginning from an array:
+            name of array .shift()
+        to combine two arrays:
+            use the name of one array .concat(and the name of the second array)
+            the array in the brackets gets put behind the array before the dot
+            if you wnat to add more than two arrays separaate the arrays with a comma in the brackets
+        to get the positional number of an ellement:
+            use the name of the array .indexOf(the ellement you wnat to find)
+            for e.g. varv a = [1, 3, 6, 9, 3, 4]; a.indexOf(3); output = 1
+            if there is no such ellement JS will output -1
+            if the ellement has multiple places it will return the first position
+        to put an array into a string:
+            use the name of the array .join()
+            if yiu leave the brackets empty it will put commas between the ellements
+            but if you put something inside the brackets in a string it will replace the comma with whats in the string
+            for e.g. var a = ["hi", 1]; a.join(" - "); output = "hi - 1"
+    Objects:
+        Accessing values:
+            type the name of the object .the name of the value ()the name of the value is the value before the colon
+        Accessing all the value names:
+            Object.keys(the name of the object) this will print  out all the value keys
+        Adding values in objects:
+            the object name .the name of the value = the value itself in quotes
+            for e.g. cat.bob = "no";
+
+Loops:
+    If loop:
+        the most basic type of loop which checks if something is true
+    If Else loop:
+        an if loop but at the end does a loop for if the output is false
+    Else If:
+        type ellse if instead of elif in python
+    While:
+        executes the body untill the value is false
+    
+
+!!!     ALLWAYS END A COMMAND WITH A SEMICOLON (;)    !!!
+Miscellaneous:
+    commenting:
+        1. // (for one line only)
+        2. /* for multiple lines and */ to close
+
+Maths:
+    Maths Operating:
+        + == plus
+        - == minus
+        / == divide
+        * == times
+        % == modulo (returns remainder)
+        ** == to the power of x
+        = == assigning equals
+        == == same as
+        != == not same as
+        <= == smaller than and equall to
+        >= == greater than and equall to
+        < == less than
+        > == greater than
+    Random:
+        Math.random():
+            this picks a floating point number betwween o and 1
+            you can on the right of the brackets put * and times it by as much as you want
+            for e.g. var a = Math.random(); or var a = Math.random() * 9; <--- this picks a random floating point
+            number between o and 9 
+        Math.floor:
+            rounds a number to the number below it
+            for e.g. var a = Math.floor(Math.random() * 4); picks a random whole number between o and 1
+        
+Html:
+    to embedd Javascript in Html:
+        <html>
+            <body>
+            <script>
+            //this is where Javascript will go
+            </script>           
+            </body>       
+        </html>
+
+Chrome:
+    To code in chrome:
+        type about:blank to get an empty chrome tab
+
+
+
+
+This is only a reference use book for details!
