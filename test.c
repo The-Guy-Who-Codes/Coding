@@ -4,6 +4,6 @@
 int x; y; 
 
 x = 23;
-y = 24
+y = 24;
 
-printf(x + y)
+printf(x + y);
