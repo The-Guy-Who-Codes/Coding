@@ -17,11 +17,15 @@ void Input(char player) {
         scanf("%i", &x);
         printf("Player %c, what is the y value of the board where you want to place your token: ", player);
         scanf("%i", &y);
-        if (*cells[x][y] != ' ') {
-            printf("A token is already in that position, try again!\n");
+        if (x > 2 || y > 2 || x < 0 || y < 0) {
+            printf("Coordinates out of range, try again!\n");
         } else {
-            *cells[x][y] = player;
-            accept = 1;
+            if (*cells[x][y] != ' ') {
+                printf("A token is already in that position, try again!\n");
+            } else {
+                *cells[x][y] = player;
+                accept = 1;
+            }
         }
 
     } while (accept == 0);
