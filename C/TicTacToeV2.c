@@ -1,4 +1,5 @@
 #include <stdio.h>
+#define bool int
 
 char cell1[] = "|         ", cell2[] = "|         ", cell3[] = "|         |", cell4[] = "|         ", cell5[] = "|         ", cell6[] = "|         |", cell7[] = "|         ", cell8[] = "|         ", cell9[] = "|         |";
 const char spacer[] = "|         |         |         |";
@@ -10,18 +11,29 @@ void PrintBoard() {
 }
 void Input(char player) {
     int x, y;
-    printf("Player %c, what is the x value of the board where you want to place your token: ", player);
-    scanf("%i", &x);
-    printf("Player %c, what is the y value of the board where you want to place your token: ", player);
-    scanf("%i", &y);
-    *cells[x][y] = player;
+    bool accept = 0;
+    do {
+        printf("Player %c, what is the x value of the board where you want to place your token: ", player);
+        scanf("%i", &x);
+        printf("Player %c, what is the y value of the board where you want to place your token: ", player);
+        scanf("%i", &y);
+        if (*cells[x][y] != ' ') {
+            printf("A token is already in that position, try again!\n");
+        } else {
+            *cells[x][y] = player;
+            accept = 1;
+        }
+
+    } while (accept == 0);
+
 
 }
 
 
 int main() {
-    PrintBoard();
-    Input('O');
-    PrintBoard();
+    while (1) {
+        PrintBoard();
+        Input('Z');
+    }
     return 0;
 }
