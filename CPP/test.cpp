@@ -1,7 +1,7 @@
 #include <iostream>
+using namespace std;
 
 int main() {
-    bool x = false;
-    std::cout << x << std::endl;
-    //std::cin.get();
+    cout << "Hello,\nWorld!";
+    return 0;
 }
