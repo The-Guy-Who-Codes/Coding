@@ -13,6 +13,7 @@ char * cells[3][3] = {{cell1 + 5, cell2 + 5, cell3 + 5}, {cell4 + 5, cell5 + 5, 
 void PrintBoard() {
     printf("%s\n%s\n%s%s%s\n%s\n%s\n%s\n%s%s%s\n%s\n%s\n%s\n%s%s%s\n%s\n%s\n", line, spacer, cell7, cell8, cell9, spacer, line, spacer, cell4, cell5, cell6, spacer, line, spacer, cell1, cell2, cell3, spacer, line);
 }
+
 void Input(char player) {
     int x, y;
     bool accept = 0;
@@ -109,18 +110,49 @@ int ThreeInARow(char player) {
         return 1;
     }
 
-    // test for 3 in a row diagonally
+    // test for 3 in a row diagonally in the direction going to the top right
+    int InDiagonal[3][2] = {{-1, -1}, {-1, -1}, {-1, -1}};
+    int DiagIter = 0;
+    for (int i = 0; i < 6; i++) {
+        if (tokens[i][1] == tokens[i][0] && tokens[i][1] != -1 && tokens[i][0] != -1) {
+            InDiagonal[DiagIter][0] = tokens[i][0];
+            InDiagonal[DiagIter][1] = tokens[i][1];
+            DiagIter++;
+        }
+    }
+    for (int z = 0; z < 4; z++) {
+        printf("\n%i, %i", InDiagonal[z][0], InDiagonal[z][1]);
+    }
+    if (InDiagonal[2][2] != -1) {
+        printf("Player %c Wins!!! Forward Diagonal!!!\n", player);
+        return 1;        
+    }
 
+    // other diagonal test (hard coded but okay) will be changed
 
+    if (*cells[2][0] == player && *cells[1][1] == player && *cells[0][2] == player) {
+        printf("Player %c Wins!!! Backwards Diagonal!!!\n", player);
+        return 1;        
+    }
+    return 0;
 }
 
 
 int main() {
     bool endgame = 0;
+    int round = 0;
+    char player;
+    PrintBoard();
     while (endgame ==  0) {
+        if (round % 2 == 0) {
+            player = 'X';
+        } else {
+            player = 'O';
+        }
+        Input(player);
         PrintBoard();
-        Input('Z');
-        ThreeInARow('Z');
+        endgame = ThreeInARow(player);
+        round++;
     }
     return 0;
 }
