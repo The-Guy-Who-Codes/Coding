@@ -51,9 +51,9 @@ int ThreeInARow(char player) {
             }
         }
     }
-    for (int z = 0; z < 7; z++) {
+    /*for (int z = 0; z < 7; z++) {
         printf("%i, %i\n", tokens[z][0], tokens[z][1]);
-    }
+    }*/
     // test for 3 in a row in a column
     int XGroup[3][3] = {{-1, -1, -1}, {-1, -1, -1}, {-1, -1, -1}};
     int X0, X1, X2;
@@ -110,25 +110,13 @@ int ThreeInARow(char player) {
         return 1;
     }
 
-    // test for 3 in a row diagonally in the direction going to the top right
-    int InDiagonal[3][2] = {{-1, -1}, {-1, -1}, {-1, -1}};
-    int DiagIter = 0;
-    for (int i = 0; i < 6; i++) {
-        if (tokens[i][1] == tokens[i][0] && tokens[i][1] != -1 && tokens[i][0] != -1) {
-            InDiagonal[DiagIter][0] = tokens[i][0];
-            InDiagonal[DiagIter][1] = tokens[i][1];
-            DiagIter++;
-        }
-    }
-    for (int z = 0; z < 4; z++) {
-        printf("\n%i, %i", InDiagonal[z][0], InDiagonal[z][1]);
-    }
-    if (InDiagonal[2][2] != -1) {
-        printf("Player %c Wins!!! Forward Diagonal!!!\n", player);
+
+    // diagonal test (hard coded but okay) will be changed... eventually
+    if (*cells[0][0] == player && *cells[1][1] == player && *cells[2][2] == player) {
+        printf("Player %c Wins!!! Forwards Diagonal!!!\n", player);
         return 1;        
     }
 
-    // other diagonal test (hard coded but okay) will be changed
 
     if (*cells[2][0] == player && *cells[1][1] == player && *cells[0][2] == player) {
         printf("Player %c Wins!!! Backwards Diagonal!!!\n", player);
