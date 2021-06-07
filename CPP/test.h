@@ -5,7 +5,7 @@ class LOG {
 public:
     const int INFO_LEVEL = 0;
     const int WARN_LEVEL = 1;
-    const int ERRO_LEVEL = 2;
+    const int ERROR_LEVEL = 2;
     int LOG_LEVEL = 0;
 
     void INFO(std::string x) {
@@ -21,7 +21,9 @@ public:
     }
 
     void ERROR(std::string x) {
-        std::cout << "[ERROR]: " << x << std::endl;
+        if (LOG_LEVEL <= 2) {
+            std::cout << "[ERROR]: " << x << std::endl;
+        }  
     }
 
 };

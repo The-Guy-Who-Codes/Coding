@@ -1,5 +1,5 @@
 #include <iostream>
-#include <strings.h>
+#include <string>
 #include "test.h"
 
 class Person {
@@ -10,6 +10,10 @@ public:
     Person(std::string iname, int iage) {
         age = iage;
         name = iname;
+    }
+
+    ~Person() {
+        std::cout << "Oh No, You died!!!\n";
     }
 
     void birthday() {
