@@ -1,10 +1,30 @@
 #include <iostream>
-using namespace std;
+#include <strings.h>
+#include "test.h"
+
+class Person {
+public:
+    std::string name;
+    int age;
+
+    Person(std::string iname, int iage) {
+        age = iage;
+        name = iname;
+    }
+
+    void birthday() {
+        age++;
+        std::cout << "Happy Birthday\n";
+    }
+};
+
 
 int main() {
-    int x = 1;
-    x++;
-    int * px = &x;
-    cout << px << '\n' << x;
+    LOG LOG;
+    Person Borris("Borris", 24);
+    std::cout << Borris.age << '\n';
+    Borris.birthday();
+    std::cout << Borris.age << '\n';
+    LOG.INFO(Borris.name + " is my name");
     return 0;
 }
