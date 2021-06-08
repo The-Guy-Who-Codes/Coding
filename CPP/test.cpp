@@ -1,6 +1,6 @@
 #include <iostream>
 #include <string>
-#include "test.h"
+#include "test.hpp"
 
 class Person {
 public:
