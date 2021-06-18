@@ -11,7 +11,7 @@ double power(double value, int power){
 
 
 double mySQRT(int value) {
-    double x0, x1;
+    register double x0, x1;
     for (int i = 0; i < value; i++) {
         
         int t1 = power(i, 2);
@@ -35,13 +35,11 @@ double mySQRT(int value) {
 
 
 double root(double value, double exponent) {
-    double x0, x1;
+    register double x0, x1;
 
     for (int i = 0; i < value; i++) {
-        int t1 = power(i, exponent);
-        int t2 = power(i + 1, exponent);
         // printf("DEBUG: %d\n%d\n", t1, t2);
-        if (t1 <= value && t2 > value) {
+        if (power(i, exponent) <= value && power(i + 1, exponent) > value) {
             x0 = i;
             break;
         }
@@ -49,7 +47,7 @@ double root(double value, double exponent) {
     //x0 = value / exponent;
     // printf("test: %f\n", x0);
 
-    for (int i = 0; i < 4; i++) {
+    for (int i = 0; i < (exponent * 6); i++) {
         x1 = x0 - ((power(x0, exponent) - value) / (exponent * power(x0, exponent - 1)));
         x0 = x1;
     }

@@ -1,22 +1,9 @@
 #include <stdio.h>
 #include <stdint.h>
-
-typedef uint8_t BOOL;
-enum boolean{false = 0, true = 1};
-
-BOOL isEven(int num) {
-    if (num % 2 == 0) {
-        return true;
-    } else {
-        return false;
-    }
-}
-
+#include "sqrt.h"
 
 int main() {
-    int x = 246;
-    if (isEven(x) == true) {
-        printf("yay\n");
-    }
+    printf("%i\n%i\n%i\n", sizeof(char), sizeof(uint8_t), sizeof(short int));
+
     return 0;
 }
