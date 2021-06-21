@@ -43,6 +43,7 @@
         "typeinfo": "cpp",
         "complex": "cpp",
         "6502.h": "c",
-        "stdio.h": "c"
+        "stdio.h": "c",
+        "stdint.h": "c"
     }
 }

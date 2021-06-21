@@ -5,8 +5,8 @@
 // opcodes
 
 #define INS_LDA_IM 0xA9
-
-
+#define INS_LDX_IM 0xA2
+#define INS_LDY_IM 0xA0
 
 
 typedef uint8_t Byte;
