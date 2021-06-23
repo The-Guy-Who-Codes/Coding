@@ -1,9 +1,7 @@
 #include <stdio.h>
-#include <stdint.h>
-#include "sqrt.h"
 
 int main() {
-    printf("%i\n%i\n%i\n", sizeof(char), sizeof(uint8_t), sizeof(short int));
-
+    int value = 0b00011001 ;
+    printf("%d", (value & (1<<7)) >> 7);
     return 0;
 }
