@@ -2,10 +2,7 @@
 #include "test.h"
 
 
-
-
 int main() {
-    int out = add20(20);
-    printf("%i\n", out);
+    printf("%i\n", _test(67, 4, 3));
     return 0;
 }
