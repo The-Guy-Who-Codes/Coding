@@ -31,14 +31,14 @@ int factorial(int a) {
 
 double sin(double x) {
     // sanitise input so that x is within +- pi
-    return x - (pow(x, 3) / 6) + (pow(x, 5 / 120)) - (pow(x, 7) / 5040) + (pow(x, 9) / 362880) - (pow(x, 11) / 39916800) + (pow(x, 13) / 1932053504);
+    return (x - (pow(x, 3) / 6) + (pow(x, 5) / 120) - (pow(x, 7) / 5040) + (pow(x, 9) / 362880) - (pow(x, 11) / 39916800) + (pow(x, 13) / 6227020800));
 }
 
 
 class Matrix {
         int w, h;
     
-    // enter has ascii value dec. 10
+    // enter key has ascii value dec. 10
 
     public:
         Matrix (int, int);
@@ -109,8 +109,7 @@ int main() {
     //mat.printMat();
    // mat.scalar(2);
     //mat.printMat();
-    printf("%f\n", pow(pi / 2, 13));
-    printf("%f\n", sin(pi / 2));
+    printf("%f\n", sin(pi / 4));
     
     
     return 0;
