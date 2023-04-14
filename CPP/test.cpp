@@ -16,7 +16,7 @@ void to_frac(double x) {
 	double tmp1;
 	int tmp2;
 	tmp1 = x;
-	while (1 / tmp1 > 0.00001) {
+	while (1 / tmp1 > 0.00000001) {
 		tmp2 = (int) tmp1;
 		ints.push_back(tmp2);
 		tmp1 -= tmp2;
@@ -134,12 +134,12 @@ Matrix::Matrix (int a, int b) {
 }
 
 
-int main() {
+int main(int argc, char* argv[]){
     //Matrix mat (2, 2);
     //mat.init();
     //mat.printMat();
    // mat.scalar(2);
     //mat.printMat();
-    	to_frac(0.8923076923);
+    	to_frac(88.3820224719);
     	return 0;
 }
