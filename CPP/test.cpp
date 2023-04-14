@@ -1,6 +1,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <vector>
+#include <iostream>
 
 
 double pi = 3.141592654;
@@ -9,6 +10,29 @@ void debugI(int a) {
     printf("DEBUG: %i\n", a);
 }
 
+void to_frac(double x) {
+	std::vector<int> ints;
+	double left = x;
+	double tmp1;
+	int tmp2;
+	tmp1 = x;
+	while (1 / tmp1 > 0.00001) {
+		tmp2 = (int) tmp1;
+		ints.push_back(tmp2);
+		tmp1 -= tmp2;
+		tmp1 = 1 / tmp1;
+	}
+	int a, b;
+	a = ints[ints.size() - 1];
+	b = 1;
+	for (int i = ints.size() - 2; i >= 0; i--) {
+		tmp1 = a;
+		a = b;
+		b = tmp1;
+		a += b * ints[i];		
+	}
+	printf("%i / %i \n", a, b);
+}
 
 double pow(double a, int b) {
     if (b == 0) {
@@ -34,6 +58,13 @@ double sin(double x) {
     return (x - (pow(x, 3) / 6) + (pow(x, 5) / 120) - (pow(x, 7) / 5040) + (pow(x, 9) / 362880) - (pow(x, 11) / 39916800) + (pow(x, 13) / 6227020800));
 }
 
+double cos(double x) {
+	return sin(x + (pi / 2));
+}
+
+double tan(double x) {
+	return sin(x) / cos(x);
+}
 
 class Matrix {
         int w, h;
@@ -109,8 +140,6 @@ int main() {
     //mat.printMat();
    // mat.scalar(2);
     //mat.printMat();
-    printf("%f\n", sin(pi / 4));
-    
-    
-    return 0;
+    	to_frac(0.8923076923);
+    	return 0;
 }
