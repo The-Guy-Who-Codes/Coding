@@ -1,5 +1,6 @@
 #pragma once
 #include <cstdio>
+#include <stdlib.h>
 #include <vector>
 #include "gen.hpp"
 #include "trig.hpp"
@@ -20,11 +21,21 @@ int num_params(std::vector<char> params) {
     } 
     int count = 0;
     for (int i = 0; i < params.size(); i++) {
-        if (params[i] == 0x2C) { // is ","
+        if (params[i] == ',') { // is ","
             count++;
         }
     }
     return count + 1;
+}
+
+int contains(std::vector<char> input, char value) {
+    int count = 0;
+    for (int i = 0; i < input.size(); i++) {
+        if (input[i] == value) {
+            count++;
+        }
+    }
+    return count;
 }
 
 
@@ -38,7 +49,7 @@ int correct_num_params(int a, int b) {
 
 int is_int(std::vector<char> param) {
     for (int i = 0; i < param.size(); i++) {
-        if (param[i] == 0x2E) { // "."
+        if (param[i] == '.') { // "."
             return 0;
         }
     }
@@ -63,24 +74,46 @@ std::vector<double> get_params(std::vector<char> params, int num) {
 }
 
 
+
 int execute() {
     int a = getchar();
-    int sum = 0;
-    int bopen = 0; 
-    int bclose = 0;
-    std::vector<char> params;
-    while (a != 0x0A) { // not newline
-        if (a != 0x28 && bopen == 0 && bclose ==  0) { // not "(", defines the operator
-            sum += a;
-        } else if (a == 0x28) {
-            bopen = 1;
-        } else if (a != 0x29 && a != 0x20 && bopen == 1 && bclose == 0) { // not ")" or " ", defines the parameters
-            params.push_back(a);
-        } else if (a == 0x29) {
-            bclose = 1;
-        }
+    int sum, bopen, bclose;
+    std::vector<char> params, input;
+    std::vector<int> operations;
+
+    while (a != 0x0A) {
+        if (a != ' ') {
+            printf("Debug: %c\n", a);
+            input.push_back(a);
+            }
         a = getchar();
     }
+    input.push_back(';');
+
+    int num_ops = contains(input, '(');
+    int pointer = 0;
+    sum = 0;
+    bopen = 0;
+    bclose = 0;
+    a = input[pointer];
+    while (a != ';') {
+        printf("%c\n", a);
+        //printf("%i\n", pointer);
+        if (a != '(' && bopen == 0 && bclose ==  0) { // not "(", defines the operator
+            sum += a;
+        } else if (a == '(') {
+            bopen = 1;
+        } else if (a != ')' && a != ' ' && bopen == 1 && bclose == 0) { // not ")" or " ", defines the parameters
+            params.push_back(a);
+            //printf("Debug: %c\n", a);
+        } else if (a == ')') {
+            bclose = 1;
+        }
+        pointer++;
+        a = input[pointer];
+    }
+    printf("0x%x\n", sum);    
+
     int num = num_params(params);
     int num_params;
     double ret;
