@@ -16,7 +16,7 @@ void to_frac(double x) {
 	double tmp1;
 	int tmp2;
 	tmp1 = x;
-	while (1 / tmp1 > 0.00000001) {
+	while (tmp1 < 1000) {
 		tmp2 = (int) tmp1;
 		ints.push_back(tmp2);
 		tmp1 -= tmp2;
@@ -43,6 +43,44 @@ double pow(double a, int b) {
         a *= tmp;
     }
     return a;
+}
+
+double sqrt(double a) {
+    double xn, xn1;
+    int i;
+    for (i = 0; i < a; i++) {
+        int v1 = pow(i, 2);
+        int v2 = pow(i + 1, 2);
+
+        if (v1 <= a && v2 >= a) {
+            xn = i;
+            break;
+        }
+    }
+    for (i = 0; i < 4; i++) {
+        xn1 = xn - (pow(xn, 2) - a) / (2 * xn);
+        xn = xn1;
+    }
+    return xn1;
+}
+
+double root(double a, int b) {
+    double xn, xn1;
+    int i;
+    for (i = 0; i < a; i++) {
+        int v1 = pow(i, b);
+        int v2 = pow(i + 1, b);
+
+        if (v1 <= a && v2 >= a) {
+            xn = i;
+            break;
+        }
+    }
+    for (i = 0; i < 4; i++) {
+        xn1 = xn - (pow(xn, b) - a) / (b * pow(xn, b - 1));
+        xn = xn1;
+    }
+    return xn1;
 }
 
 int factorial(int a) {
@@ -140,6 +178,7 @@ int main(int argc, char* argv[]){
     //mat.printMat();
    // mat.scalar(2);
     //mat.printMat();
-    	to_frac(88.3820224719);
+    	to_frac(2.090909090909091);
+        printf("%.8f\n", root(365, 5));
     	return 0;
 }
