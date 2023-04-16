@@ -1,6 +1,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <vector>
+#include <string>
 #include <iostream>
 #include "lexer.hpp"
 
@@ -11,7 +12,8 @@ void debugI(int a) {
 
 int main(int argc, char* argv[]){
     while (1) {
-        execute();
+        //execute();
+        tokenise_input();
     }
     return 0;
 }

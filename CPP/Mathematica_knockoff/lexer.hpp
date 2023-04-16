@@ -2,6 +2,8 @@
 #include <cstdio>
 #include <stdlib.h>
 #include <vector>
+#include <string>
+#include <iostream>
 #include "gen.hpp"
 #include "trig.hpp"
 
@@ -36,6 +38,15 @@ int contains(std::vector<char> input, char value) {
         }
     }
     return count;
+}
+
+int find(std::vector<std::string> input, std::string value) {
+    for (int i = 0; i < input.size(); i++) {
+        if (input[i] == value) {
+            return i;
+        }
+    }
+    return -1;
 }
 
 
@@ -73,7 +84,114 @@ std::vector<double> get_params(std::vector<char> params, int num) {
     return ret_params;
 }
 
+void push_token(std::string* token, std::string* token_val, std::vector<std::string>* output) {
+    output->push_back(*token);
+    output->push_back(*token_val);
+    token_val->erase(0, token_val->size());
+    token->erase(0, token->size());
+}
 
+std::vector<std::string> tokenise(std::string input, int is_param) {
+    std::string token, token_val, number;
+    int is_float = 0;
+    std::vector<std::string> output;
+    int i = 0;
+    int open = 0;
+    while (i < input.size() - 1) {
+        if (input[i] > 'A' && input[i] < 'z') {
+            token_val.append(1, input[i]);
+
+            if (!(input[i + 1] > 'A' && input[i + 1] < 'z') && input[i + 1] != '{') {
+                token = "_var";
+                push_token(&token, &token_val, &output);
+            }
+
+        } else if (input[i] == '{') {
+            open++;
+            token = "_func";
+            push_token(&token, &token_val, &output);
+            token = "_param";
+            i++;
+            while (open != 0) {
+                if (input[i] == '{') {
+                    open++;
+                } else if (input[i] == '}') {
+                    open--;
+                }
+                token_val.append(1, input[i]);
+                i++;
+            }
+            token_val.pop_back();
+            push_token(&token, &token_val, &output);
+            i--;
+            token = "_eparam";
+            output.push_back(token);
+            token.erase(0, token.size());
+
+        } else if (input[i] == ',') {
+            token = "_nparam";
+            output.push_back(token);
+            token.erase(0, token.size());
+
+        } else if (((input[i] - 48) >= 0 && (input[i] - 48) <= 9) || input[i] == '.') {
+            if (input[i] == '.') {
+                is_float = 1;
+                number.append(1, input[i]);
+            } else {
+                number.append(1, input[i]);
+            }
+            if (!((input[i + 1] - 48) >= 0 && (input[i + 1] - 48) <= 9) && input[i + 1] != '.') {
+                if (is_float == 1) {
+                    token = "_float";
+                } else {
+                    token = "_int";
+                }
+                push_token(&token, &number, &output);
+                is_float = 0;
+            }
+
+        } 
+
+        i++;
+    }
+
+    return output;
+}
+
+//std::vector<std::string> tokenise_input() {
+void tokenise_input(){
+    std::string input;
+    std::vector<std::string> output, tmp;
+    char a = getchar();
+    while (a != 0x0A) {
+    if (a != ' ') {
+        input.append(1, a);
+        }
+    a = getchar();
+    }
+    input.append(";");
+    int is_param = 0;
+    output = tokenise(input, is_param);
+    int i = find(output, "_param");
+    
+    while (i != -1) {
+        tmp = tokenise(output[i + 1] + ';', is_param);
+        output.erase(output.begin() + i, output.begin() + i + 2);
+        for (int j = 0; j < tmp.size(); j++) {
+            output.insert(output.begin() + i + j, tmp[j]);
+        }
+        i = find(output, "_param");
+
+    }
+    
+    std::cout << '\n';  
+    for (int j = 0; j < output.size(); j++) {
+        std::cout << output[j] << '\n';       
+    }
+
+    
+
+}
 
 int execute() {
     int a = getchar();
@@ -83,36 +201,31 @@ int execute() {
 
     while (a != 0x0A) {
         if (a != ' ') {
-            printf("Debug: %c\n", a);
             input.push_back(a);
             }
         a = getchar();
     }
     input.push_back(';');
 
-    int num_ops = contains(input, '(');
+    int num_ops = contains(input, '{');
     int pointer = 0;
     sum = 0;
     bopen = 0;
     bclose = 0;
     a = input[pointer];
     while (a != ';') {
-        printf("%c\n", a);
-        //printf("%i\n", pointer);
-        if (a != '(' && bopen == 0 && bclose ==  0) { // not "(", defines the operator
+        if (a != '{' && bopen == 0 && bclose ==  0) { // not "(", defines the operator
             sum += a;
-        } else if (a == '(') {
+        } else if (a == '{') {
             bopen = 1;
-        } else if (a != ')' && a != ' ' && bopen == 1 && bclose == 0) { // not ")" or " ", defines the parameters
+        } else if (a != '}' && a != ' ' && bopen == 1 && bclose == 0) { // not ")" or " ", defines the parameters
             params.push_back(a);
-            //printf("Debug: %c\n", a);
-        } else if (a == ')') {
+        } else if (a == '}') {
             bclose = 1;
         }
         pointer++;
         a = input[pointer];
     }
-    printf("0x%x\n", sum);    
 
     int num = num_params(params);
     int num_params;

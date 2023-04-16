@@ -15,7 +15,6 @@ int ascii_sum() {
     return sum;
 }
 
-
 int main() {
     while (1) {
         printf("%x\n\n", ascii_sum());
