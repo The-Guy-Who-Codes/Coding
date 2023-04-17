@@ -17,7 +17,7 @@ int inp_int(std::vector<char> params) {
     return num;
 }
 
-int num_params(std::vector<char> params) {
+int get_num_params(std::vector<char> params) {
     if (params.size() == 0) {
         return 0;
     } 
@@ -91,7 +91,7 @@ void push_token(std::string* token, std::string* token_val, std::vector<std::str
     token->erase(0, token->size());
 }
 
-std::vector<std::string> tokenise(std::string input, int is_param) {
+std::vector<std::string> tokenise(std::string input) {
     std::string token, token_val, number;
     int is_float = 0;
     std::vector<std::string> output;
@@ -150,16 +150,29 @@ std::vector<std::string> tokenise(std::string input, int is_param) {
                 is_float = 0;
             }
 
-        } 
+        } else if (input[i] == '+' || input[i] == '-' || input[i] == '*' || input[i] == '/' || input[i] == '!') {
+            token = "_op";
+            token_val = input[i];
+            push_token(&token, &token_val, &output);
 
+        } else if (input[i] == '(') {
+            token = "_obrack";
+            output.push_back(token);
+            token.erase(0, token.size());
+
+        } else if (input[i] == ')') {
+            token = "_cbrack";
+            output.push_back(token);
+            token.erase(0, token.size());
+
+        }
         i++;
     }
 
     return output;
 }
 
-//std::vector<std::string> tokenise_input() {
-void tokenise_input(){
+std::vector<std::string> tokenise_input() {
     std::string input;
     std::vector<std::string> output, tmp;
     char a = getchar();
@@ -170,12 +183,11 @@ void tokenise_input(){
     a = getchar();
     }
     input.append(";");
-    int is_param = 0;
-    output = tokenise(input, is_param);
+    output = tokenise(input);
     int i = find(output, "_param");
     
     while (i != -1) {
-        tmp = tokenise(output[i + 1] + ';', is_param);
+        tmp = tokenise(output[i + 1] + ';');
         output.erase(output.begin() + i, output.begin() + i + 2);
         for (int j = 0; j < tmp.size(); j++) {
             output.insert(output.begin() + i + j, tmp[j]);
@@ -186,108 +198,13 @@ void tokenise_input(){
     
     std::cout << '\n';  
     for (int j = 0; j < output.size(); j++) {
-        std::cout << output[j] << '\n';       
+        std::cout << output[j] << ', ';       
     }
+    std::cout << '\n';
+
+    return output;
 
     
 
 }
 
-int execute() {
-    int a = getchar();
-    int sum, bopen, bclose;
-    std::vector<char> params, input;
-    std::vector<int> operations;
-
-    while (a != 0x0A) {
-        if (a != ' ') {
-            input.push_back(a);
-            }
-        a = getchar();
-    }
-    input.push_back(';');
-
-    int num_ops = contains(input, '{');
-    int pointer = 0;
-    sum = 0;
-    bopen = 0;
-    bclose = 0;
-    a = input[pointer];
-    while (a != ';') {
-        if (a != '{' && bopen == 0 && bclose ==  0) { // not "(", defines the operator
-            sum += a;
-        } else if (a == '{') {
-            bopen = 1;
-        } else if (a != '}' && a != ' ' && bopen == 1 && bclose == 0) { // not ")" or " ", defines the parameters
-            params.push_back(a);
-        } else if (a == '}') {
-            bclose = 1;
-        }
-        pointer++;
-        a = input[pointer];
-    }
-
-    int num = num_params(params);
-    int num_params;
-    double ret;
-    std::vector<double> values;
-    switch (sum) {
-
-        case (0x156): // pow(a, b)
-            num_params = 2;
-            if (correct_num_params(num, num_params) == 0) {
-                return 0;
-            } else {
-                values = get_params(params, num_params);
-                ret = pow(values[0], values[1]);
-            }
-            break;
-        case (0x1CA): // sqrt(a)
-            num_params = 1;
-            if (correct_num_params(num, num_params) == 0) {
-                return 0;
-            } else {
-                values = get_params(params, num_params);
-                ret = sqrt(values[0]);
-            }
-            break;
-        case (0x1C4): // root(a)
-            num_params = 2;
-            if (correct_num_params(num, num_params) == 0) {
-                return 0;
-            } else {
-                values = get_params(params, num_params);
-                ret = root(values[0], values[1]);
-            }
-            break;
-        case (0x14A): // sin(a)
-            num_params = 1;
-            if (correct_num_params(num, num_params) == 0) {
-                return 0;
-            } else {
-                values = get_params(params, num_params);
-                ret = sin(values[0]);
-            }
-            break;
-        case (0x145): // cos(a)
-            num_params = 1;
-            if (correct_num_params(num, num_params) == 0) {
-                return 0;
-            } else {
-                values = get_params(params, num_params);
-                ret = cos(values[0]);
-            }
-            break;
-        case (0x143): // tan(a)
-            num_params = 1;
-            if (correct_num_params(num, num_params) == 0) {
-                return 0;
-            } else {
-                values = get_params(params, num_params);
-                ret = tan(values[0]);
-            }
-            break;
-    }
-    printf("%f\n\n", ret);
-    return 1;
-}
