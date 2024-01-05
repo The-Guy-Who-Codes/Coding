@@ -198,7 +198,7 @@ std::vector<std::string> tokenise_input() {
     
     std::cout << '\n';  
     for (int j = 0; j < output.size(); j++) {
-        std::cout << output[j] << ', ';       
+        std::cout << output[j] << ", ";       
     }
     std::cout << '\n';
 

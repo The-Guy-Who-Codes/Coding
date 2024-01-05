@@ -4,6 +4,7 @@
 #include <string>
 #include <iostream>
 #include "lexer.hpp"
+#include "formatting.hpp"
 
 
 void debugI(int a) {
@@ -11,6 +12,7 @@ void debugI(int a) {
 }
 
 int main(int argc, char* argv[]){
+
     while (1) {
         //execute();
         tokenise_input();
