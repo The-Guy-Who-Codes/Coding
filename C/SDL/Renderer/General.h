@@ -30,6 +30,12 @@ int init(SDL_Window **window, SDL_Renderer **renderer, SDL_Texture **texture, in
             {
                 printf( "Renderer could not be created! SDL Error: %s\n", SDL_GetError() );
                 success = 0;
+            } else {
+                *texture = SDL_CreateTexture(*renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, SCREEN_WIDTH, SCREEN_HEIGHT);
+                if (texture == NULL) {
+                    printf("Texture could not be created! SDL_Error:%s\n", SDL_GetError());
+                    success = 0;
+                }
             }
         }
     }
@@ -50,6 +56,5 @@ void ex(SDL_Window *window, SDL_Renderer *renderer, SDL_Texture *texture)
     renderer = NULL;
 
     //Quit SDL subsystems
-    //IMG_Quit();
     SDL_Quit();
 }

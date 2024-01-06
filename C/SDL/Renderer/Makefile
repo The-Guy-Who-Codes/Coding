@@ -1,5 +1,5 @@
 #OBJS specifies which files to compile as part of the project
-OBJS = test.c
+OBJS = main.c
 #CC specifies which compiler we're using
 CC = gcc
 
@@ -11,7 +11,7 @@ COMPILER_FLAGS = -w
 LINKER_FLAGS = -lSDL2
 
 #OBJ_NAME specifies the name of our exectuable
-OBJ_NAME = test
+OBJ_NAME = main
 
 #This is the target that compiles our executable
 all : $(OBJS)
