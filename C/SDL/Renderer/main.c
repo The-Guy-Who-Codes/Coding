@@ -41,7 +41,7 @@ void PixelShader(Pixel* pixels, int count) {
 
     Vector rayOrigin = {0, 0, -1.0f};
 
-    Vector lightSource = normalize((Vector) {XToUV(xMouse), YToUV(yMouse), -1});
+    Vector lightSource = normalize((Vector) {XToUV(xMouse), YToUV(yMouse), -0.5f});
 
     Vector normal;
     float lightScale;
