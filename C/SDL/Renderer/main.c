@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <math.h>
+#include <omp.h>
 #include "Random.h"
 #include "General.h"
 #include "vectors.h"
@@ -14,6 +15,7 @@
 #define ConvertToARGB(a, r, g, b) (((uint8_t) (a * 255.0f)) << 24 | ((uint8_t) (r * 255.0f)) << 16 | ((uint8_t) (g * 255.0f)) << 8 | ((uint8_t) (b * 255.0f)))
 #define SCREEN_WIDTH 640
 #define SCREEN_HEIGHT 480
+#define SPHERE_COUNT 1
 #define pixelsPerUnit ((float) SCREEN_HEIGHT / 2.0f)
 
 #define XToUV(x) (((float) x - SCREEN_WIDTH / 2.0f) / pixelsPerUnit)
@@ -37,7 +39,7 @@ typedef struct Pixel {
 
 
 // main pixel shader
-void PixelShader(Pixel* pixels, int count) {
+void PixelShader(Pixel* pixels, int count, Sphere* spheres) {
 
     Vector rayOrigin = {0, 0, -1.0f};
 
@@ -56,9 +58,8 @@ void PixelShader(Pixel* pixels, int count) {
 
 
 
-
+    #pragma omp parallel for private(t, a, b, c, discriminant, hitPoint, rayDirection, lightScale, normal) shared(rayOrigin, lightSource, radius)
     for (int i = 0; i < count; i++) {
-
 
 
         rayDirection = (Vector) {pixels[i].x, pixels[i].y, 1.0f};
@@ -108,9 +109,14 @@ int main(int argc, char **argv) {
     
     Pixel *pixels = NULL;
     uint32_t* screen = NULL;
+    Sphere* spheres;
 
     pixels = malloc(sizeof(Pixel) * PixelCount);
     screen = malloc(sizeof(uint32_t) * PixelCount);
+    spheres = malloc(sizeof(Sphere) * SPHERE_COUNT);
+
+    spheres[0] = (Sphere) {{0, 0, 0}, 0.5f, {1, 1, 0, 1}};
+
     
     // give the pixel coordinates and sets the y axis from -1 to 1 and x axis is created to preserve aspect ratio
     float max = (float) SCREEN_WIDTH / (float) SCREEN_HEIGHT;
@@ -143,7 +149,7 @@ int main(int argc, char **argv) {
         //SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
         //SDL_RenderClear( renderer );
 
-        PixelShader(pixels, PixelCount);
+        PixelShader(pixels, PixelCount, spheres);
 
         // create 32 bit argb pixel colour for screen
         for (int i = 0; i < PixelCount; i++) {
@@ -172,9 +178,11 @@ int main(int argc, char **argv) {
     ex(window, renderer, texture);
     free(screen);
     free(pixels);
+    free(spheres);
 
     screen = NULL;
     pixels = NULL;
+    spheres = NULL;
 
     return 0;
 }

@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <math.h>
+#include <omp.h>
 #include "General.h"
 #include "vectors.h"
 
@@ -54,8 +55,7 @@ void PixelShader(Pixel* pixels, int count) {
     float t, a, b, c, discriminant;
 
 
-
-
+    #pragma omp parallel for private(t, a, b, c, discriminant, normal, lightScale, rayDirection, hitPoint) shared(radius, rayOrigin, lightSource)
     for (int i = 0; i < count; i++) {
 
 
@@ -105,7 +105,7 @@ int main(int argc, char **argv) {
     uint64_t PixelCount = SCREEN_WIDTH * SCREEN_HEIGHT;
     int pitch = 4 * SCREEN_WIDTH; // 4 is the number of bytes used for colour information per pixel
     
-    Pixel *pixels = NULL;
+    Pixel* pixels = NULL;
     uint32_t* screen = NULL;
 
     pixels = malloc(sizeof(Pixel) * PixelCount);
@@ -130,6 +130,9 @@ int main(int argc, char **argv) {
     // for frame rate
     uint64_t start, end;
     float elapsed;
+
+    double frameCount = 0;
+    double frameTime = 0; 
     
     while (e.type != SDL_QUIT) {
         
@@ -145,6 +148,7 @@ int main(int argc, char **argv) {
         PixelShader(pixels, PixelCount);
 
         // create 32 bit argb pixel colour for screen
+        #pragma omp parallel for shared(PixelCount, screen, pixels)
         for (int i = 0; i < PixelCount; i++) {
             screen[i] = pixels[i].argb;
         }
@@ -164,16 +168,24 @@ int main(int argc, char **argv) {
 
         // calculate frame rate
         end = SDL_GetPerformanceCounter();
-        elapsed = (end - start) / (float)SDL_GetPerformanceFrequency();
-        printf("%f ms\n", elapsed * 1000);
+        elapsed = 1000 * (end - start) / (float)SDL_GetPerformanceFrequency();
+        frameTime += elapsed;
+        frameCount++;
+        printf("%f ms\n", elapsed);
     }
+    
+    printf("Average frame time: %f ms\n", frameTime / frameCount);
 
     ex(window, renderer, texture);
-    free(screen);
-    free(pixels);
 
+
+    
+    free(screen); // Seg fault is with screen pointer
+    free(pixels);
+    
     screen = NULL;
     pixels = NULL;
+    
 
     return 0;
 }
