@@ -6,6 +6,7 @@
 #include <stdint.h>
 #include <math.h>
 #include <omp.h>
+#include <float.h>
 #include "Random.h"
 #include "General.h"
 #include "vectors.h"
@@ -15,7 +16,7 @@
 #define ConvertToARGB(a, r, g, b) (((uint8_t) (a * 255.0f)) << 24 | ((uint8_t) (r * 255.0f)) << 16 | ((uint8_t) (g * 255.0f)) << 8 | ((uint8_t) (b * 255.0f)))
 #define SCREEN_WIDTH 640
 #define SCREEN_HEIGHT 480
-#define SPHERE_COUNT 1
+#define SPHERE_COUNT 2
 #define pixelsPerUnit ((float) SCREEN_HEIGHT / 2.0f)
 
 #define XToUV(x) (((float) x - SCREEN_WIDTH / 2.0f) / pixelsPerUnit)
@@ -51,38 +52,60 @@ void PixelShader(Pixel* pixels, int count, Sphere* spheres) {
     Vector rayDirection;
     
     Vector hitPoint;
+
+    Vector translate;
     
 
-    float radius = 0.5f;
-    float t, a, b, c, discriminant;
+    float radius;
+    float t, a, b, c, discriminant, closestT;
+    int closestShpere;
+    int hit;
 
 
 
-    #pragma omp parallel for private(t, a, b, c, discriminant, hitPoint, rayDirection, lightScale, normal) shared(rayOrigin, lightSource, radius)
+    //#pragma omp parallel for private(t, a, b, c, discriminant, hitPoint, rayDirection, lightScale, normal, radius, closestShpere, closestT, translate) shared(rayOrigin, lightSource)
     for (int i = 0; i < count; i++) {
-
 
         rayDirection = (Vector) {pixels[i].x, pixels[i].y, 1.0f};
         rayDirection = normalize(rayDirection);
 
-        // solve for whether there is an intersection of the ray and the sphere
-        a = dot(rayDirection, rayDirection);
-        b = 2 * dot(rayDirection, rayOrigin);
-        c = dot(rayOrigin, rayOrigin) - radius * radius;
 
-        discriminant = b * b - 4 * a * c;
+        closestT = FLT_MAX;
+        hit = 0;
+
+        for (int x = 0; x < SPHERE_COUNT; x++) {
+            radius = spheres[x].r;
+            translate = Vminus(rayOrigin, spheres[x].origin);
+
+            // solve for whether there is an intersection of the ray and the sphere
+            a = dot(rayDirection, rayDirection);
+            b = 2 * dot(rayDirection, translate);
+            c = dot(translate, translate) - radius * radius;
+
+            discriminant = b * b - 4 * a * c;
+            
+            if (discriminant >= 0) {
+                // normalised distance from ray source to sphere
+                t = (-b - sqrt(discriminant)) / (2.0f * a);
+                hit = 1;
+
+                if (t < closestT) {
+                    closestT = t;
+                    closestShpere = x;
+                }
+
+            }
+        }
 
         // if there is an intersection
-        if (discriminant >= 0) {
-            
-            // normalised distance from ray source to sphere
-            t = (-b - sqrt(discriminant)) / (2.0f * a);
+        if (hit == 1) {
 
+            radius = spheres[closestShpere].r;
             // calculate where on the sphere the ray hit
-            hitPoint = (Vector) {rayOrigin.x + rayDirection.x * t, rayOrigin.y + rayDirection.y * t, rayOrigin.z + rayDirection.z * t};
+            hitPoint = (Vector) {rayOrigin.x + rayDirection.x * closestT, rayOrigin.y + rayDirection.y * closestT, rayOrigin.z + rayDirection.z * closestT};
 
             // calculate the normal of the sphere surface where the ray hit
-            normal = normalize(hitPoint);
+            normal = normalize(Vminus(hitPoint, spheres[closestShpere].origin));
 
             // calculate the dot product (cos(angle)) between the light source and the surface normal
             lightScale = max(dot(normal, lightSource), 0.0f);
@@ -116,6 +139,7 @@ int main(int argc, char **argv) {
     spheres = malloc(sizeof(Sphere) * SPHERE_COUNT);
 
     spheres[0] = (Sphere) {{0, 0, 0}, 0.5f, {1, 1, 0, 1}};
+    spheres[1] = (Sphere) {{-1, 0, 1}, 0.5f, {1, 1, 0, 1}};
 
     
     // give the pixel coordinates and sets the y axis from -1 to 1 and x axis is created to preserve aspect ratio
