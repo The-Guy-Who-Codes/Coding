@@ -29,7 +29,7 @@ typedef struct Ray {
 typedef struct Sphere {
     Vector origin;
     double r;
-    Vector albedo;
+    uint8_t albedo[4];
 } Sphere;
 
 double clamp(double d, double min, double max) {
