@@ -1,6 +1,5 @@
 #pragma once
 #include <SDL2/SDL.h>
-#include <SDL2/SDL_mouse.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
@@ -14,6 +13,7 @@
 // map argb where values range from 0 to 1 with return of 32 bit argb value
 #define ConvertToARGB_Clamp(a, r, g, b) (((uint8_t) (clamp(a, 0, 1) * 255.0f)) << 24 | ((uint8_t) (clamp(r, 0, 1) * 255.0f)) << 16 | ((uint8_t) (clamp(g, 0, 1) * 255.0f)) << 8 | ((uint8_t) (clamp(b, 0, 1) * 255.0f)))
 #define ConvertToARGB(a, r, g, b) (((uint8_t) (a * 255.0f)) << 24 | ((uint8_t) (r * 255.0f)) << 16 | ((uint8_t) (g * 255.0f)) << 8 | ((uint8_t) (b * 255.0f)))
+#define AlbedoToARGB(albedo) (((uint8_t) (albedo[0] * 255.0f)) << 24 | ((uint8_t) (albedo[1] * 255.0f)) << 16 | ((uint8_t) (albedo[2] * 255.0f)) << 8 | ((uint8_t) (albedo[3] * 255.0f)))
 #define SCREEN_WIDTH 640
 #define SCREEN_HEIGHT 480
 #define SPHERE_COUNT 2
@@ -27,9 +27,8 @@ SDL_Window* window = NULL;
 SDL_Renderer* renderer = NULL;
 SDL_Texture* texture = NULL;
 
-uint32_t xMouse, yMouse;
 
-uint32_t seed = 0x01a35f4;
+uint32_t* seed = 0x01a35f4;
 
 typedef struct Pixel {
     float x;
@@ -44,7 +43,7 @@ void PixelShader(Pixel* pixels, int count, Sphere* spheres) {
 
     Vector rayOrigin = {0, 0, -1.0f};
 
-    Vector lightSource = normalize((Vector) {XToUV(xMouse), YToUV(yMouse), -0.5f});
+    Vector lightSource = normalize((Vector) {1, 1, -1});
 
     Vector normal;
     float lightScale;
@@ -54,7 +53,7 @@ void PixelShader(Pixel* pixels, int count, Sphere* spheres) {
     Vector hitPoint;
 
     Vector translate;
-    
+
 
     float radius;
     float t, a, b, c, discriminant, closestT;
@@ -63,7 +62,7 @@ void PixelShader(Pixel* pixels, int count, Sphere* spheres) {
 
 
 
-    //#pragma omp parallel for private(t, a, b, c, discriminant, hitPoint, rayDirection, lightScale, normal, radius, closestShpere, closestT, translate) shared(rayOrigin, lightSource)
+    #pragma omp parallel for private(t, a, b, c, discriminant, hitPoint, rayDirection, lightScale, normal, radius, closestShpere, closestT, translate, hit) shared( rayOrigin, lightSource)
     for (int i = 0; i < count; i++) {
 
         rayDirection = (Vector) {pixels[i].x, pixels[i].y, 1.0f};
@@ -87,6 +86,9 @@ void PixelShader(Pixel* pixels, int count, Sphere* spheres) {
             if (discriminant >= 0) {
                 // normalised distance from ray source to sphere
                 t = (-b - sqrt(discriminant)) / (2.0f * a);
+                if (t < 0) {
+                    break;
+                }
                 hit = 1;
 
                 if (t < closestT) {
@@ -111,7 +113,8 @@ void PixelShader(Pixel* pixels, int count, Sphere* spheres) {
             lightScale = max(dot(normal, lightSource), 0.0f);
 
             // shade the sphere using the dot product as a shading constant
-            pixels[i].argb = ConvertToARGB(1, 1 * lightScale, 0, 1 * lightScale);
+            float colour[4] = {spheres[closestShpere].albedo[0], spheres[closestShpere].albedo[1] * lightScale, spheres[closestShpere].albedo[2] * lightScale, spheres[closestShpere].albedo[3] * lightScale};
+            pixels[i].argb = AlbedoToARGB(colour);  //ConvertToARGB(1, 1 * lightScale, 0, 1 * lightScale);
 
         } else {
             pixels[i].argb = ConvertToARGB(1, 0, 0, 0);
@@ -124,6 +127,11 @@ void PixelShader(Pixel* pixels, int count, Sphere* spheres) {
 
 
 int main(int argc, char **argv) {
+
+    printf("test\n");
+    //Vector random = {random_float(seed), random_float(seed), random_float(seed)};
+    //printf("%f, %f, %f\n", random.x, random.y, random.z);
+    //printf("%f\n", random_float(seed));
 
 
     // create pixel array and screen buffer
@@ -139,8 +147,7 @@ int main(int argc, char **argv) {
     spheres = malloc(sizeof(Sphere) * SPHERE_COUNT);
 
     spheres[0] = (Sphere) {{0, 0, 0}, 0.5f, {1, 1, 0, 1}};
-    spheres[1] = (Sphere) {{-1, 0, 1}, 0.5f, {1, 1, 0, 1}};
-
+    spheres[1] = (Sphere) {{0, -100.5, 0}, 100, {1, 0, 1, 0}};
     
     // give the pixel coordinates and sets the y axis from -1 to 1 and x axis is created to preserve aspect ratio
     float max = (float) SCREEN_WIDTH / (float) SCREEN_HEIGHT;
@@ -167,7 +174,6 @@ int main(int argc, char **argv) {
         // calculate frame rate
         start = SDL_GetPerformanceCounter();
 
-        SDL_GetMouseState(&xMouse, &yMouse);
 
         // clear the screen to black
         //SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
@@ -196,7 +202,7 @@ int main(int argc, char **argv) {
         // calculate frame rate
         end = SDL_GetPerformanceCounter();
         elapsed = (end - start) / (float)SDL_GetPerformanceFrequency();
-        printf("%f ms\n", elapsed * 1000);
+        //printf("%f ms\n", elapsed * 1000);
     }
 
     ex(window, renderer, texture);
