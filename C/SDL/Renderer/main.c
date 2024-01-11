@@ -1,4 +1,3 @@
-#pragma once
 #include <SDL2/SDL.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -6,7 +5,6 @@
 #include <math.h>
 #include <omp.h>
 #include <float.h>
-#include "Random.h"
 #include "General.h"
 #include "vectors.h"
 
@@ -28,7 +26,7 @@ SDL_Renderer* renderer = NULL;
 SDL_Texture* texture = NULL;
 
 
-uint32_t* seed = 0x01a35f4;
+uint32_t seed = 0x01a35f4;
 
 typedef struct Pixel {
     float x;
@@ -37,113 +35,126 @@ typedef struct Pixel {
 
 } Pixel;
 
+typedef struct HitPayload {
+    float HitDistance;
+    Vector WorldPosition;
+    Vector WorldNormal;
+    uint32_t ObjectIndex;
+} HitPayload;
 
-// main pixel shader
-void PixelShader(Pixel* pixels, int count, Sphere* spheres) {
+uint32_t miss(Ray ray) {
+    Vector unit_dir = normalize(ray.Direction);
+    float a = 0.5f * (unit_dir.y + 1.0f);
+    Vector colour = {(1.0f - a) + a * 0.5f, (1.0f - a) + a * 0.7f, (1.0f - a)+ a * 1.0f};
+    return  (((uint8_t) (255.0f)) << 24 | ((uint8_t) (colour.x * 255.0f)) << 16 | ((uint8_t) (colour.y * 255.0f)) << 8 | ((uint8_t) (colour.z * 255.0f)));
+}
 
-    Vector rayOrigin = {0, 0, -1.0f};
-
-    Vector lightSource = normalize((Vector) {1, 1, -1});
-
-    Vector normal;
-    float lightScale;
-
-    Vector rayDirection;
+HitPayload ClosestHit(Sphere* spheres, Ray ray, float Distance, uint32_t ObjectIndex) {
     
-    Vector hitPoint;
-
-    Vector translate;
-
-
-    float radius;
-    float t, a, b, c, discriminant, closestT;
-    int closestShpere;
-    int hit;
+    HitPayload payload;
+    payload.HitDistance = Distance;
 
 
+    // if the ray intersected a sphere
+    if (payload.HitDistance == FLT_MAX) {
+    
+        return payload;
 
-    #pragma omp parallel for private(t, a, b, c, discriminant, hitPoint, rayDirection, lightScale, normal, radius, closestShpere, closestT, translate, hit) shared( rayOrigin, lightSource)
-    for (int i = 0; i < count; i++) {
+    } else {
 
-        rayDirection = (Vector) {pixels[i].x, pixels[i].y, 1.0f};
-        rayDirection = normalize(rayDirection);
+        payload.ObjectIndex = ObjectIndex;
+        
+        // calculate where on the sphere the ray hit
+        payload.WorldPosition = (Vector) {ray.Origin.x + ray.Direction.x * payload.HitDistance, ray.Origin.y + ray.Direction.y * payload.HitDistance, ray.Origin.z + ray.Direction.z * payload.HitDistance};
+    
+         // calculate the normal of the sphere surface where the ray hit
+        payload.WorldNormal = normalize(Vminus(payload.WorldPosition, spheres[payload.ObjectIndex].origin));
 
+        return payload;
+    
+    }
 
-        closestT = FLT_MAX;
-        hit = 0;
+}
 
-        for (int x = 0; x < SPHERE_COUNT; x++) {
-            radius = spheres[x].r;
-            translate = Vminus(rayOrigin, spheres[x].origin);
+HitPayload TraceRay(Sphere* spheres, Ray ray) {
 
-            // solve for whether there is an intersection of the ray and the sphere
-            a = dot(rayDirection, rayDirection);
-            b = 2 * dot(rayDirection, translate);
-            c = dot(translate, translate) - radius * radius;
+    float closestT = FLT_MAX;
+    uint32_t index = UINT32_MAX;
 
-            discriminant = b * b - 4 * a * c;
-            
-            if (discriminant >= 0) {
-                // normalised distance from ray source to sphere
-                t = (-b - sqrt(discriminant)) / (2.0f * a);
-                if (t < 0) {
-                    break;
-                }
-                hit = 1;
+    for (int x = 0; x < SPHERE_COUNT; x++) {
 
-                if (t < closestT) {
-                    closestT = t;
-                    closestShpere = x;
-                }
+        float radius = spheres[x].r;
+        Vector translate = Vminus(ray.Origin, spheres[x].origin);
 
+        // solve for whether there is an intersection of the ray and the sphere
+        float a = dot(ray.Direction, ray.Direction);
+        float b = 2 * dot(ray.Direction, translate);
+        float c = dot(translate, translate) - radius * radius;
+
+        float discriminant = b * b - 4 * a * c;
+        
+        if (discriminant >= 0) {
+            // normalised distance from ray source to sphere
+            float t = (-b - sqrt(discriminant)) / (2.0f * a);
+
+            // find the sphere which the ray origin is closest to
+            if (t < closestT && t > 0) {
+                closestT = t;
+                index = x;
             }
+
         }
+    }
+    return ClosestHit(spheres, ray, closestT, index);
+}
 
-        // if there is an intersection
-        if (hit == 1) {
 
-            radius = spheres[closestShpere].r;
-            // calculate where on the sphere the ray hit
-            hitPoint = (Vector) {rayOrigin.x + rayDirection.x * closestT, rayOrigin.y + rayDirection.y * closestT, rayOrigin.z + rayDirection.z * closestT};
+uint32_t PerPixel(float x, float y, Sphere* spheres, Vector lightSource) {
 
-            // calculate the normal of the sphere surface where the ray hit
-            normal = normalize(Vminus(hitPoint, spheres[closestShpere].origin));
 
-            // calculate the dot product (cos(angle)) between the light source and the surface normal
-            lightScale = max(dot(normal, lightSource), 0.0f);
+    // define the ray comming from the pixel
+    Ray ray;
+    ray.Origin = (Vector) {0, 0, -1};
+    ray.Direction = normalize((Vector) {x, y, 1.0f});
 
-            // shade the sphere using the dot product as a shading constant
-            float colour[4] = {spheres[closestShpere].albedo[0], spheres[closestShpere].albedo[1] * lightScale, spheres[closestShpere].albedo[2] * lightScale, spheres[closestShpere].albedo[3] * lightScale};
-            pixels[i].argb = AlbedoToARGB(colour);  //ConvertToARGB(1, 1 * lightScale, 0, 1 * lightScale);
 
-        } else {
-            pixels[i].argb = ConvertToARGB(1, 0, 0, 0);
-        }
+    HitPayload payload = TraceRay(spheres, ray);
+
+    // if the ray did not hit a sphere
+    if (payload.HitDistance == FLT_MAX) {  
+        return miss(ray);
+    
+    } else {
+        // calculate the dot product (cos(angle)) between the light source and the surface normal
+        float lightScale = max(dot(payload.WorldNormal, lightSource), 0.0f);
+
+        // shade the sphere using the dot product as a shading constant
+        float colour[4] = {spheres[payload.ObjectIndex].albedo[0], spheres[payload.ObjectIndex].albedo[1] * lightScale, spheres[payload.ObjectIndex].albedo[2] * lightScale, spheres[payload.ObjectIndex].albedo[3] * lightScale};
+        return AlbedoToARGB(colour);  //ConvertToARGB(1, 1 * lightScale, 0, 1 * lightScale);
+
 
     }
 
 }
 
 
-
 int main(int argc, char **argv) {
-
-    printf("test\n");
-    //Vector random = {random_float(seed), random_float(seed), random_float(seed)};
-    //printf("%f, %f, %f\n", random.x, random.y, random.z);
-    //printf("%f\n", random_float(seed));
-
 
     // create pixel array and screen buffer
     uint64_t PixelCount = SCREEN_WIDTH * SCREEN_HEIGHT;
     int pitch = 4 * SCREEN_WIDTH; // 4 is the number of bytes used for colour information per pixel
     
-    Pixel *pixels = NULL;
+    // linked lists for the screen coordinates and the colours (screen)
+    float* pixelsX = NULL;
+    float* pixelsY = NULL;
     uint32_t* screen = NULL;
-    Sphere* spheres;
+    
+    Sphere* spheres = NULL;
 
-    pixels = malloc(sizeof(Pixel) * PixelCount);
+    pixelsX = malloc(sizeof(float) * PixelCount);
+    pixelsY = malloc(sizeof(float) * PixelCount);
     screen = malloc(sizeof(uint32_t) * PixelCount);
+    
     spheres = malloc(sizeof(Sphere) * SPHERE_COUNT);
 
     spheres[0] = (Sphere) {{0, 0, 0}, 0.5f, {1, 1, 0, 1}};
@@ -152,8 +163,8 @@ int main(int argc, char **argv) {
     // give the pixel coordinates and sets the y axis from -1 to 1 and x axis is created to preserve aspect ratio
     float max = (float) SCREEN_WIDTH / (float) SCREEN_HEIGHT;
     for (int i = 0; i < PixelCount; i++) {
-        pixels[i].x = (float)(i % SCREEN_WIDTH) / (float) SCREEN_HEIGHT * 2.0f - max;
-        pixels[i].y = -((float)(i / SCREEN_WIDTH) / (float) SCREEN_HEIGHT * 2.0f - 1);
+        pixelsX[i] = (float)(i % SCREEN_WIDTH) / (float) SCREEN_HEIGHT * 2.0f - max;
+        pixelsY[i] = -((float)(i / SCREEN_WIDTH) / (float) SCREEN_HEIGHT * 2.0f - 1);
     }
 
     if (!init(&window, &renderer, &texture, SCREEN_WIDTH, SCREEN_HEIGHT)) {
@@ -169,21 +180,21 @@ int main(int argc, char **argv) {
     uint64_t start, end;
     float elapsed;
     
+    // define the light source
+    Vector lightSource = normalize((Vector) {1, 1, -1});
+
+
     while (e.type != SDL_QUIT) {
         
         // calculate frame rate
         start = SDL_GetPerformanceCounter();
 
-
-        // clear the screen to black
-        //SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
-        //SDL_RenderClear( renderer );
-
-        PixelShader(pixels, PixelCount, spheres);
-
-        // create 32 bit argb pixel colour for screen
+        // run pixel shader
+        #pragma omp parallel for shared(pixelsX, pixelsY, lightSource, spheres)
         for (int i = 0; i < PixelCount; i++) {
-            screen[i] = pixels[i].argb;
+
+            screen[i] = PerPixel(pixelsX[i], pixelsY[i], spheres, lightSource);
+                
         }
 
         // draw the pixel buffer
@@ -202,16 +213,18 @@ int main(int argc, char **argv) {
         // calculate frame rate
         end = SDL_GetPerformanceCounter();
         elapsed = (end - start) / (float)SDL_GetPerformanceFrequency();
-        //printf("%f ms\n", elapsed * 1000);
+        printf("%f ms\n", elapsed * 1000);
     }
 
     ex(window, renderer, texture);
     free(screen);
-    free(pixels);
+    free(pixelsX);
+    free(pixelsY);
     free(spheres);
 
     screen = NULL;
-    pixels = NULL;
+    pixelsX = NULL;
+    pixelsY = NULL;
     spheres = NULL;
 
     return 0;

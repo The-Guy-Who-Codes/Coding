@@ -21,9 +21,8 @@ typedef struct Vector {
 } Vector;
 
 typedef struct Ray {
-    Vector a;
-    Vector b;
-    double t;
+    Vector Origin;
+    Vector Direction;
 } Ray;
 
 typedef struct Sphere {
@@ -45,5 +44,3 @@ Vector normalize(Vector vector) {
     output.z = vector.z / mod;
     return output;
 }
-
-
