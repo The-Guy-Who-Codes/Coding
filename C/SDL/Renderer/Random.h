@@ -1,5 +1,6 @@
 #pragma once
 #include <stdint.h>
+#include <float.h>
 
 static uint32_t PCG_Hash(uint32_t input) {
     
@@ -11,5 +12,10 @@ static uint32_t PCG_Hash(uint32_t input) {
 
 static uint8_t random_uint8(uint32_t *seed) {
     *seed = PCG_Hash(*seed);
-    return (uint8_t)*seed ;
+    return (uint8_t) *seed;
+}
+
+static float random_float(uint32_t* seed) {
+    *seed = PCG_Hash(*seed);
+    return (float) *seed / (float) UINT32_MAX;
 }
