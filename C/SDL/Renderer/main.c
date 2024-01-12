@@ -16,7 +16,7 @@
 #define VectorToARGB_Clamp(albedo) ((0xff) << 24 | ((uint8_t) (clamp(albedo.x, 0, 1) * 255.0f)) << 16 | ((uint8_t) (clamp(albedo.y, 0, 1) * 255.0f)) << 8 | ((uint8_t) (clamp(albedo.z, 0, 1) * 255.0f)))
 #define SCREEN_WIDTH 640
 #define SCREEN_HEIGHT 480
-#define SPHERE_COUNT 9
+#define SPHERE_COUNT 16
 #define RAYS_PER_PIXEL 100
 #define MAX_REFLECTIONS 4
 #define pixelsPerUnit ((float) SCREEN_HEIGHT / 2.0f)
@@ -119,8 +119,13 @@ uint32_t PerPixel(float x, float y, Sphere* spheres, Vector lightSource, uint64_
     //for (int z = 0; z < RAYS_PER_PIXEL; z++) {
         // define the ray comming from the pixel
         Ray ray;
+        // FRONT VIEW
         ray.Origin = (Vector) {0, 0.5, -1.5};
-        ray.Direction = normalize((Vector) {x + random_float(&seed) * 0.007f, y + random_float(&seed) * 0.007f, 1.0f});
+        ray.Direction = normalize((Vector) {x + random_float(&seed) * 0.005f, y + random_float(&seed) * 0.005f, 1.0f});
+        
+        // SIDE VIEW
+        //ray.Origin = (Vector) {1.5, 0.5, -0.5};
+        //ray.Direction = normalize((Vector) {-1.0f, y + random_float(&seed) * 0.007f, x + random_float(&seed) * 0.007f});
 
         float multiplier = 1.0f;
         Vector colour = {0, 0, 0};
@@ -192,12 +197,27 @@ int main(int argc, char **argv) {
     spheres = malloc(sizeof(Sphere) * SPHERE_COUNT);
 
     spheres[0] = (Sphere) {{0, 0, 0}, 0.5f, {0.8, 0.8, 0.8}, 1.0f, 0.0f};
+
+    // body
     spheres[1] = (Sphere) {{0, -100.5, 0}, 100, {0, 0, 0}, 0.0f, 0.0f};
     spheres[2] = (Sphere) {{0, 0.75, 0}, 0.4f, {0.8, 0.8, 0.8}, 1.0f, 0.0f};
+
+    // eyes
     spheres[3] = (Sphere) {{0.1, 0.74, -0.4}, 0.07f, {0.1, 0.1, 0.1}, 1.0f, 0.0f};
     spheres[4] = (Sphere) {{-0.1, 0.74, -0.4}, 0.07f, {0.1, 0.1, 0.1}, 1.0f, 0.0f};
 
-    spheres[5] = (Sphere) {{1, 0, 1.5}, 0.5f, {0.8, 0.8, 0.8}, 1.0f, 0.0f};
+    // nose
+    spheres[9] = (Sphere) {{0, 0.63, -0.4}, 0.07f, {0.77, 0.36, 0.15}, 1.0f, 0.0f};
+    spheres[10] = (Sphere) {{0, 0.63, -0.49}, 0.05f, {0.77, 0.36, 0.15}, 1.0f, 0.0f};
+    spheres[11] = (Sphere) {{0, 0.63, -0.55}, 0.03f, {0.77, 0.36, 0.15}, 1.0f, 0.0f};
+
+    // buttons
+    spheres[12] = (Sphere) {{0, 0.3, -0.405}, 0.03f, {0.1, 0.1, 0.1}, 1.0f, 0.0f};
+    spheres[13] = (Sphere) {{0, 0.2, -0.465}, 0.03f, {0.1, 0.1, 0.1}, 1.0f, 0.0f};
+    spheres[14] = (Sphere) {{0, 0.1, -0.49}, 0.03f, {0.1, 0.1, 0.1}, 1.0f, 0.0f};
+    spheres[15] = (Sphere) {{0, 0.0, -0.49}, 0.03f, {0.1, 0.1, 0.1}, 1.0f, 0.0f};
+
+    spheres[5] = (Sphere) {{1, 0, 1.5}, 0.5f, {0.5, 0.5, 0.5}, 0.0f, 0.0f};
     spheres[6] = (Sphere) {{1, 0.75, 1.5}, 0.4f, {0.8, 0.8, 0.8}, 1.0f, 0.0f};
     spheres[7] = (Sphere) {{1.1, 0.74, 1.1}, 0.07f, {0.1, 0.1, 0.1}, 1.0f, 0.0f};
     spheres[8] = (Sphere) {{0.9, 0.74, 1.1}, 0.07f, {0.1, 0.1, 0.1}, 1.0f, 0.0f};
