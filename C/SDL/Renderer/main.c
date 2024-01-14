@@ -31,8 +31,6 @@ SDL_Renderer* renderer = NULL;
 SDL_Texture* texture = NULL;
 
 
-uint32_t seed = 0x01a35f4;
-
 typedef struct Pixel {
     float x;
     float y;
@@ -113,7 +111,7 @@ HitPayload TraceRay(Sphere* spheres, Ray ray) {
     return ClosestHit(spheres, ray, closestT, index);
 }
 
-uint32_t PerPixel(float x, float y, Sphere* spheres, Vector lightSource, uint64_t frameCount, Vector* realColour) {
+uint32_t PerPixel(float x, float y, Sphere* spheres, Vector lightSource, uint64_t frameCount, Vector* realColour, uint32_t* seed) {
 
     *realColour = (realColour->x == FLT_MAX) ? (Vector) {0, 0, 0} : *realColour;
 
@@ -122,11 +120,11 @@ uint32_t PerPixel(float x, float y, Sphere* spheres, Vector lightSource, uint64_
         Ray ray;
         // FRONT VIEW
         ray.Origin = (Vector) {0, 0.5, -1.5};
-        ray.Direction = normalize((Vector) {x + random_float(&seed) * 0.005f, y + random_float(&seed) * 0.005f, 1.0f});
+        ray.Direction = normalize((Vector) {x + random_float(seed) * 0.005f, y + random_float(seed) * 0.005f, 1.0f});
         
         // SIDE VIEW
         //ray.Origin = (Vector) {1.5, 0.5, -0.5};
-        //ray.Direction = normalize((Vector) {-1.0f, y + random_float(&seed) * 0.007f, x + random_float(&seed) * 0.007f});
+        //ray.Direction = normalize((Vector) {-1.0f, y + random_float(seed) * 0.007f, x + random_float(seed) * 0.007f});
 
         float multiplier = 1.0f;
         Vector colour = {0, 0, 0};
@@ -159,7 +157,7 @@ uint32_t PerPixel(float x, float y, Sphere* spheres, Vector lightSource, uint64_
                 ray.Origin.y = payload.WorldPosition.y + payload.WorldNormal.y * 0.000001f;
                 ray.Origin.z = payload.WorldPosition.z + payload.WorldNormal.z * 0.000001f;
 
-                Vector normal = {random_float(&seed) - 0.5, random_float(&seed) - 0.5, random_float(&seed) - 0.5};
+                Vector normal = {random_float(seed) - 0.5, random_float(seed) - 0.5, random_float(seed) - 0.5};
                 normal = Vscale(normal , materials[spheres[payload.ObjectIndex].MaterialIndex].roughness);
                 normal = Vsum(normal, payload.WorldNormal);
                 ray.Direction = reflect(ray.Direction, normal);
@@ -229,7 +227,7 @@ int main(int argc, char **argv) {
     // define the light source
     Vector lightSource = normalize((Vector) {1, 0.5f, -1.5});
 
-
+    uint32_t seed = 0x01a35f4;
 
     uint64_t frameCount = 0;
 
@@ -239,10 +237,10 @@ int main(int argc, char **argv) {
         start = SDL_GetPerformanceCounter();
 
         // run pixel shader
-        #pragma omp parallel for shared(pixelsX, pixelsY, lightSource, spheres, screen)
+        #pragma omp parallel for shared(pixelsX, pixelsY, lightSource, spheres, screen) private(seed)
         for (int i = 0; i < PixelCount; i++) {
 
-            screen[i] = PerPixel(pixelsX[i], pixelsY[i], spheres, lightSource, frameCount, &(realColours[i]));
+            screen[i] = PerPixel(pixelsX[i], pixelsY[i], spheres, lightSource, frameCount, &(realColours[i]), &seed);
                 
         }
 
@@ -269,7 +267,7 @@ int main(int argc, char **argv) {
 
     ex(window, renderer, texture);
 
-    free(screen);
+    //free(screen); // screen creates seg fault
     free(pixelsX);
     free(pixelsY);
     free(spheres);
