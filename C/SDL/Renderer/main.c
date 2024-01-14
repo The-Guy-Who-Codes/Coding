@@ -17,9 +17,8 @@
 #define VectorToARGB_Clamp(albedo) ((0xff) << 24 | ((uint8_t) (clamp(albedo.x, 0, 1) * 255.0f)) << 16 | ((uint8_t) (clamp(albedo.y, 0, 1) * 255.0f)) << 8 | ((uint8_t) (clamp(albedo.z, 0, 1) * 255.0f)))
 #define SCREEN_WIDTH 640
 #define SCREEN_HEIGHT 480
-#define SPHERE_COUNT 11
-#define RAYS_PER_PIXEL 100
 #define MAX_REFLECTIONS 4
+#define SPHERE_COUNT 11
 #define pixelsPerUnit ((float) SCREEN_HEIGHT / 2.0f)
 
 #define XToUV(x) (((float) x - SCREEN_WIDTH / 2.0f) / pixelsPerUnit)
@@ -115,7 +114,6 @@ uint32_t PerPixel(float x, float y, Sphere* spheres, Vector lightSource, uint64_
 
     *realColour = (realColour->x == FLT_MAX) ? (Vector) {0, 0, 0} : *realColour;
 
-    //for (int z = 0; z < RAYS_PER_PIXEL; z++) {
         // define the ray comming from the pixel
         Ray ray;
         // FRONT VIEW
@@ -126,8 +124,8 @@ uint32_t PerPixel(float x, float y, Sphere* spheres, Vector lightSource, uint64_
         //ray.Origin = (Vector) {1.5, 0.5, -0.5};
         //ray.Direction = normalize((Vector) {-1.0f, y + random_float(seed) * 0.007f, x + random_float(seed) * 0.007f});
 
-        float multiplier = 1.0f;
-        Vector colour = {0, 0, 0};
+        Vector contribution = {1, 1, 1};
+        Vector light = {0, 0, 0};
 
         for (int i = 0; i < MAX_REFLECTIONS; i++) {
             HitPayload payload = TraceRay(spheres, ray);
@@ -135,23 +133,20 @@ uint32_t PerPixel(float x, float y, Sphere* spheres, Vector lightSource, uint64_
             // if the ray did not hit a sphere
             if (payload.HitDistance == FLT_MAX) {  
                 Vector skyColour = miss(ray);
-                skyColour = Vscale(skyColour, multiplier);
-                colour = Vsum(colour, skyColour);
+                skyColour = Vtimes(skyColour, contribution);
+                light = Vsum(light, skyColour);
                 break;
             
             } else {
 
                 Vector sphereColour = materials[spheres[payload.ObjectIndex].MaterialIndex].albedo;
 
-                // calculate the dot product (cos(angle)) between the light source and the surface normal
-                float lightScale = max(dot(payload.WorldNormal, lightSource), 0.0f);
+                contribution = Vtimes(sphereColour, contribution);
 
-                sphereColour = Vscale(sphereColour, lightScale);
+                // calculate the increase in light from emissive objects
+                Vector tmp = Vscale(materials[spheres[payload.ObjectIndex].MaterialIndex].EmissionColour, materials[spheres[payload.ObjectIndex].MaterialIndex].EmissionPower);
+                light = Vsum(light, tmp);
 
-                sphereColour = Vscale(sphereColour, multiplier);
-
-                // shade the sphere using the dot product as a shading constant            
-                colour = Vsum(colour, sphereColour);
 
                 ray.Origin.x = payload.WorldPosition.x + payload.WorldNormal.x * 0.000001f; // to avoid ray starting on the surface of the sphere
                 ray.Origin.y = payload.WorldPosition.y + payload.WorldNormal.y * 0.000001f;
@@ -160,14 +155,13 @@ uint32_t PerPixel(float x, float y, Sphere* spheres, Vector lightSource, uint64_
                 Vector normal = {random_float(seed) - 0.5, random_float(seed) - 0.5, random_float(seed) - 0.5};
                 normal = Vscale(normal , materials[spheres[payload.ObjectIndex].MaterialIndex].roughness);
                 normal = Vsum(normal, payload.WorldNormal);
-                ray.Direction = reflect(ray.Direction, normal);
+                //ray.Direction = reflect(ray.Direction, normal);
+                ray.Direction = normalize(Vsum(((Vector) {2.0 * (random_float(seed) - 0.5), 2.0 * (random_float(seed) - 0.5), 2.0 * (random_float(seed) - 0.5)}), payload.WorldNormal));
             }
 
-            multiplier *= 0.4f;
         }
-        *realColour = (Vector) {realColour->x + colour.x, realColour->y + colour.y, realColour->z + colour.z};
+        *realColour = (Vector) {realColour->x + light.x, realColour->y + light.y, realColour->z + light.z};
         
-    //}
 
     float a = 1.0f / (float) frameCount;
     return VectorToARGB_Clamp(((Vector) {realColour->x * a, realColour->y * a, realColour->z * a}));
@@ -195,8 +189,8 @@ int main(int argc, char **argv) {
     
     spheres = malloc(sizeof(Sphere) * SPHERE_COUNT);
 
-    spheres[0] = (Sphere) {{0, -100.5, 0}, 100, 0};
-
+    spheres[0] = (Sphere) {{0, -100.5, 0}, 100, 1};
+    //spheres[1] = (Sphere) {{1, 1, -1}, 0.5, 4};
     Snowman(spheres + 1, (Vector) {0.0f, 0.0f, 0.0f});
     
 

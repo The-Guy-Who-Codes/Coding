@@ -10,6 +10,7 @@
 #define Vsum(a, b)((Vector) {a.x + b.x, a.y + b.y, a.z + b.z})
 #define Vminus(a, b) ((Vector) {a.x - b.x, a.y - b.y, a.z - b.z})
 #define Vscale(vec, a) ((Vector) {vec.x * a, vec.y * a, vec.z * a})
+#define Vtimes(a, b) ((Vector) {a.x * b.x, a.y * b.y, a.z * b.z})
 
 const double pi = 3.141592654;
 
@@ -28,6 +29,8 @@ typedef struct Material {
     Vector albedo;
     float roughness;
     float metallic;
+    Vector EmissionColour;
+    float EmissionPower;
 } Material;
 
 typedef struct Sphere {
@@ -38,12 +41,18 @@ typedef struct Sphere {
 } Sphere;
 
 
-Material materials[] = {{{0, 0, 0}, 0.0f, 0.0f}, {{0.8, 0.8, 0.8}, 1.0f, 0.0f}, {{0.1, 0.1, 0.1}, 1.0f, 0.0f}, {{0.77, 0.36, 0.15}, 1.0f, 0.0f}};
-// 0: mirror
-// 1: matte white
-// 2: matte black
-// 3: matte orange
-// 4: 
+Material materials[] = {{{0, 0, 0}, 0.0, 0.0, {0, 0, 0}, 0}, // 0: mirror
+{{0.8, 0.8, 0.8}, 1.0, 0.0, {0.8, 0.8, 0.8}, 0}, // 1: matte white
+{{0.1, 0.1, 0.1}, 1.0, 0.0, {0.1, 0.1, 0.1}, 0}, // 2: matte black
+{{0.77, 0.36, 0.15}, 1.0, 0.0, {0.77, 0.36, 0.15}, 0}, // 3: matte orange
+{{0.8, 0.5, 0.2}, 1.0, 0.0, {0.8, 0.5, 0.2}, 4.0},  // 4: orange lightsource
+{{0.2, 0.3, 0.7}, 1.0, 0.0, {0.2, 0.3, 0.7}, 0} // 5: blueish
+};
+
+
+
+
+
 
 
 
