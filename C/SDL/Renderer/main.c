@@ -8,6 +8,7 @@
 #include "Random.h"
 #include "General.h"
 #include "vectors.h"
+#include "Objects.h"
 
 // map argb where values range from 0 to 1 with return of 32 bit argb value
 #define ConvertToARGB_Clamp(a, r, g, b) (((uint8_t) (clamp(a, 0, 1) * 255.0f)) << 24 | ((uint8_t) (clamp(r, 0, 1) * 255.0f)) << 16 | ((uint8_t) (clamp(g, 0, 1) * 255.0f)) << 8 | ((uint8_t) (clamp(b, 0, 1) * 255.0f)))
@@ -16,7 +17,7 @@
 #define VectorToARGB_Clamp(albedo) ((0xff) << 24 | ((uint8_t) (clamp(albedo.x, 0, 1) * 255.0f)) << 16 | ((uint8_t) (clamp(albedo.y, 0, 1) * 255.0f)) << 8 | ((uint8_t) (clamp(albedo.z, 0, 1) * 255.0f)))
 #define SCREEN_WIDTH 640
 #define SCREEN_HEIGHT 480
-#define SPHERE_COUNT 16
+#define SPHERE_COUNT 11
 #define RAYS_PER_PIXEL 100
 #define MAX_REFLECTIONS 4
 #define pixelsPerUnit ((float) SCREEN_HEIGHT / 2.0f)
@@ -142,7 +143,7 @@ uint32_t PerPixel(float x, float y, Sphere* spheres, Vector lightSource, uint64_
             
             } else {
 
-                Vector sphereColour = spheres[payload.ObjectIndex].albedo;
+                Vector sphereColour = materials[spheres[payload.ObjectIndex].MaterialIndex].albedo;
 
                 // calculate the dot product (cos(angle)) between the light source and the surface normal
                 float lightScale = max(dot(payload.WorldNormal, lightSource), 0.0f);
@@ -159,7 +160,7 @@ uint32_t PerPixel(float x, float y, Sphere* spheres, Vector lightSource, uint64_
                 ray.Origin.z = payload.WorldPosition.z + payload.WorldNormal.z * 0.000001f;
 
                 Vector normal = {random_float(&seed) - 0.5, random_float(&seed) - 0.5, random_float(&seed) - 0.5};
-                normal = Vscale(normal , spheres[payload.ObjectIndex].roughness);
+                normal = Vscale(normal , materials[spheres[payload.ObjectIndex].MaterialIndex].roughness);
                 normal = Vsum(normal, payload.WorldNormal);
                 ray.Direction = reflect(ray.Direction, normal);
             }
@@ -196,31 +197,10 @@ int main(int argc, char **argv) {
     
     spheres = malloc(sizeof(Sphere) * SPHERE_COUNT);
 
-    spheres[0] = (Sphere) {{0, 0, 0}, 0.5f, {0.8, 0.8, 0.8}, 1.0f, 0.0f};
+    spheres[0] = (Sphere) {{0, -100.5, 0}, 100, 0};
 
-    // body
-    spheres[1] = (Sphere) {{0, -100.5, 0}, 100, {0, 0, 0}, 0.0f, 0.0f};
-    spheres[2] = (Sphere) {{0, 0.75, 0}, 0.4f, {0.8, 0.8, 0.8}, 1.0f, 0.0f};
-
-    // eyes
-    spheres[3] = (Sphere) {{0.1, 0.74, -0.4}, 0.07f, {0.1, 0.1, 0.1}, 1.0f, 0.0f};
-    spheres[4] = (Sphere) {{-0.1, 0.74, -0.4}, 0.07f, {0.1, 0.1, 0.1}, 1.0f, 0.0f};
-
-    // nose
-    spheres[9] = (Sphere) {{0, 0.63, -0.4}, 0.07f, {0.77, 0.36, 0.15}, 1.0f, 0.0f};
-    spheres[10] = (Sphere) {{0, 0.63, -0.49}, 0.05f, {0.77, 0.36, 0.15}, 1.0f, 0.0f};
-    spheres[11] = (Sphere) {{0, 0.63, -0.55}, 0.03f, {0.77, 0.36, 0.15}, 1.0f, 0.0f};
-
-    // buttons
-    spheres[12] = (Sphere) {{0, 0.3, -0.405}, 0.03f, {0.1, 0.1, 0.1}, 1.0f, 0.0f};
-    spheres[13] = (Sphere) {{0, 0.2, -0.465}, 0.03f, {0.1, 0.1, 0.1}, 1.0f, 0.0f};
-    spheres[14] = (Sphere) {{0, 0.1, -0.49}, 0.03f, {0.1, 0.1, 0.1}, 1.0f, 0.0f};
-    spheres[15] = (Sphere) {{0, 0.0, -0.49}, 0.03f, {0.1, 0.1, 0.1}, 1.0f, 0.0f};
-
-    spheres[5] = (Sphere) {{1, 0, 1.5}, 0.5f, {0.5, 0.5, 0.5}, 0.0f, 0.0f};
-    spheres[6] = (Sphere) {{1, 0.75, 1.5}, 0.4f, {0.8, 0.8, 0.8}, 1.0f, 0.0f};
-    spheres[7] = (Sphere) {{1.1, 0.74, 1.1}, 0.07f, {0.1, 0.1, 0.1}, 1.0f, 0.0f};
-    spheres[8] = (Sphere) {{0.9, 0.74, 1.1}, 0.07f, {0.1, 0.1, 0.1}, 1.0f, 0.0f};
+    Snowman(spheres + 1, (Vector) {0.0f, 0.0f, 0.0f});
+    
 
 
     Vector* realColours = malloc(sizeof(Vector) * PixelCount);

@@ -13,7 +13,6 @@
 
 const double pi = 3.141592654;
 
-
 typedef struct Vector {
     double x;
     double y;
@@ -25,13 +24,29 @@ typedef struct Ray {
     Vector Direction;
 } Ray;
 
-typedef struct Sphere {
-    Vector origin;
-    double r;
+typedef struct Material {
     Vector albedo;
     float roughness;
     float metallic;
+} Material;
+
+typedef struct Sphere {
+    Vector origin;
+    double r;
+    uint32_t MaterialIndex;
+
 } Sphere;
+
+
+Material materials[] = {{{0, 0, 0}, 0.0f, 0.0f}, {{0.8, 0.8, 0.8}, 1.0f, 0.0f}, {{0.1, 0.1, 0.1}, 1.0f, 0.0f}, {{0.77, 0.36, 0.15}, 1.0f, 0.0f}};
+// 0: mirror
+// 1: matte white
+// 2: matte black
+// 3: matte orange
+// 4: 
+
+
+
 
 double clamp(double d, double min, double max) {
   const double t = d < min ? min : d;
