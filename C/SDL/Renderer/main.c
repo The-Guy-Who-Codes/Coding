@@ -1,3 +1,6 @@
+// This is a personal academic project. Dear PVS-Studio, please check it.
+// PVS-Studio Static Code Analyzer for C, C++, C#, and Java: https://pvs-studio.com
+
 #include <SDL2/SDL.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -18,7 +21,7 @@
 #define SCREEN_WIDTH 640
 #define SCREEN_HEIGHT 480
 #define MAX_REFLECTIONS 4
-#define SPHERE_COUNT 11
+#define SPHERE_COUNT 14
 #define pixelsPerUnit ((float) SCREEN_HEIGHT / 2.0f)
 
 #define XToUV(x) (((float) x - SCREEN_WIDTH / 2.0f) / pixelsPerUnit)
@@ -141,22 +144,31 @@ uint32_t PerPixel(float x, float y, Sphere* spheres, Vector lightSource, uint64_
 
                 Vector sphereColour = materials[spheres[payload.ObjectIndex].MaterialIndex].albedo;
 
-                contribution = Vtimes(sphereColour, contribution);
-
-                // calculate the increase in light from emissive objects
-                Vector tmp = Vscale(materials[spheres[payload.ObjectIndex].MaterialIndex].EmissionColour, materials[spheres[payload.ObjectIndex].MaterialIndex].EmissionPower);
-                light = Vsum(light, tmp);
-
-
                 ray.Origin.x = payload.WorldPosition.x + payload.WorldNormal.x * 0.000001f; // to avoid ray starting on the surface of the sphere
                 ray.Origin.y = payload.WorldPosition.y + payload.WorldNormal.y * 0.000001f;
                 ray.Origin.z = payload.WorldPosition.z + payload.WorldNormal.z * 0.000001f;
 
-                Vector normal = {random_float(seed) - 0.5, random_float(seed) - 0.5, random_float(seed) - 0.5};
-                normal = Vscale(normal , materials[spheres[payload.ObjectIndex].MaterialIndex].roughness);
-                normal = Vsum(normal, payload.WorldNormal);
-                //ray.Direction = reflect(ray.Direction, normal);
-                ray.Direction = normalize(Vsum(((Vector) {2.0 * (random_float(seed) - 0.5), 2.0 * (random_float(seed) - 0.5), 2.0 * (random_float(seed) - 0.5)}), payload.WorldNormal));
+                // glossy and mirror
+                if (materials[spheres[payload.ObjectIndex].MaterialIndex].roughness != 1.0) {
+                    Vector normal = {random_float(seed) - 0.5, random_float(seed) - 0.5, random_float(seed) - 0.5};
+                    normal = Vscale(normal , materials[spheres[payload.ObjectIndex].MaterialIndex].roughness);
+                    normal = Vsum(normal, payload.WorldNormal);
+                    ray.Direction = reflect(ray.Direction, normal);
+
+                    contribution = Vtimes(sphereColour, contribution);
+
+
+                // diffuse
+                } else {
+                    ray.Direction = normalize(Vsum(((Vector) {2.0 * (random_float(seed) - 0.5), 2.0 * (random_float(seed) - 0.5), 2.0 * (random_float(seed) - 0.5)}), payload.WorldNormal));
+                    
+                    contribution = Vtimes(sphereColour, contribution);
+
+                    // calculate the increase in light from emissive objects
+                    Vector tmp = Vscale(materials[spheres[payload.ObjectIndex].MaterialIndex].EmissionColour, materials[spheres[payload.ObjectIndex].MaterialIndex].EmissionPower);
+                    light = Vsum(light, tmp);
+
+                }
             }
 
         }
@@ -190,8 +202,9 @@ int main(int argc, char **argv) {
     spheres = malloc(sizeof(Sphere) * SPHERE_COUNT);
 
     spheres[0] = (Sphere) {{0, -100.5, 0}, 100, 1};
-    //spheres[1] = (Sphere) {{1, 1, -1}, 0.5, 4};
-    Snowman(spheres + 1, (Vector) {0.0f, 0.0f, 0.0f});
+    spheres[1] = (Sphere) {{-1, 0.2, 0}, 0.5, 0};
+    spheres[2] = (Sphere) {{60, 100, -60}, 50, 4};
+    Snowman(spheres + 3, (Vector) {0.0f, 0.0f, 0.0f});
     
 
 
