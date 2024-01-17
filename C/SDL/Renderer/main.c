@@ -1,6 +1,3 @@
-// This is a personal academic project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++, C#, and Java: https://pvs-studio.com
-
 #include <SDL2/SDL.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -20,8 +17,8 @@
 #define VectorToARGB_Clamp(albedo) ((0xff) << 24 | ((uint8_t) (clamp(albedo.x, 0, 1) * 255.0f)) << 16 | ((uint8_t) (clamp(albedo.y, 0, 1) * 255.0f)) << 8 | ((uint8_t) (clamp(albedo.z, 0, 1) * 255.0f)))
 #define SCREEN_WIDTH 640
 #define SCREEN_HEIGHT 480
-#define MAX_REFLECTIONS 4
-#define SPHERE_COUNT 14
+#define MAX_REFLECTIONS 10
+#define SPHERE_COUNT 4
 #define pixelsPerUnit ((float) SCREEN_HEIGHT / 2.0f)
 
 #define XToUV(x) (((float) x - SCREEN_WIDTH / 2.0f) / pixelsPerUnit)
@@ -144,29 +141,47 @@ uint32_t PerPixel(float x, float y, Sphere* spheres, Vector lightSource, uint64_
 
                 Vector sphereColour = materials[spheres[payload.ObjectIndex].MaterialIndex].albedo;
 
-                ray.Origin.x = payload.WorldPosition.x + payload.WorldNormal.x * 0.000001f; // to avoid ray starting on the surface of the sphere
-                ray.Origin.y = payload.WorldPosition.y + payload.WorldNormal.y * 0.000001f;
-                ray.Origin.z = payload.WorldPosition.z + payload.WorldNormal.z * 0.000001f;
 
-                // glossy and mirror
-                if (materials[spheres[payload.ObjectIndex].MaterialIndex].roughness != 1.0) {
-                    Vector normal = {random_float(seed) - 0.5, random_float(seed) - 0.5, random_float(seed) - 0.5};
-                    normal = Vscale(normal , materials[spheres[payload.ObjectIndex].MaterialIndex].roughness);
-                    normal = Vsum(normal, payload.WorldNormal);
-                    ray.Direction = reflect(ray.Direction, normal);
+                // metallic 
+                if (materials[spheres[payload.ObjectIndex].MaterialIndex].type == METALLIC) {
+                    
+                    // generates a new ray with a "pure" reflection added to a random "fuzzyness" vector defined by the met_roughness constant
+                    ray.Direction = reflect(ray.Direction, payload.WorldNormal);
+                    Vector tmp = normalize(((Vector) {2.0 * (random_float(seed) - 0.5), 2.0 * (random_float(seed) - 0.5), 2.0 * (random_float(seed) - 0.5)}));
+                    tmp = Vscale(tmp, materials[spheres[payload.ObjectIndex].MaterialIndex].met_roughness);
+                    ray.Direction = Vsum(ray.Direction, tmp);
 
                     contribution = Vtimes(sphereColour, contribution);
+
+                    ray.Origin.x = payload.WorldPosition.x + payload.WorldNormal.x * 0.000001f; // to avoid ray starting on the surface of the sphere
+                    ray.Origin.y = payload.WorldPosition.y + payload.WorldNormal.y * 0.000001f;
+                    ray.Origin.z = payload.WorldPosition.z + payload.WorldNormal.z * 0.000001f;
+
+
+                } else if(materials[spheres[payload.ObjectIndex].MaterialIndex].type == DIELECTRIC){
+                    
+                    ray.Direction = refract(normalize(ray.Direction), payload.WorldNormal, 1 / materials[spheres[payload.ObjectIndex].MaterialIndex].ref_index, seed);
+
+                    ray.Origin.x = payload.WorldPosition.x - payload.WorldNormal.x * 0.000001f; // to avoid ray starting on the surface of the sphere
+                    ray.Origin.y = payload.WorldPosition.y - payload.WorldNormal.y * 0.000001f;
+                    ray.Origin.z = payload.WorldPosition.z - payload.WorldNormal.z * 0.000001f;
 
 
                 // diffuse
                 } else {
-                    ray.Direction = normalize(Vsum(((Vector) {2.0 * (random_float(seed) - 0.5), 2.0 * (random_float(seed) - 0.5), 2.0 * (random_float(seed) - 0.5)}), payload.WorldNormal));
+                    // complete random reat direction biased by the normal
+                    ray.Direction = Vsum(normalize(((Vector) {2.0 * (random_float(seed) - 0.5), 2.0 * (random_float(seed) - 0.5), 2.0 * (random_float(seed) - 0.5)})), payload.WorldNormal);
                     
                     contribution = Vtimes(sphereColour, contribution);
+
 
                     // calculate the increase in light from emissive objects
                     Vector tmp = Vscale(materials[spheres[payload.ObjectIndex].MaterialIndex].EmissionColour, materials[spheres[payload.ObjectIndex].MaterialIndex].EmissionPower);
                     light = Vsum(light, tmp);
+
+                    ray.Origin.x = payload.WorldPosition.x + payload.WorldNormal.x * 0.000001f; // to avoid ray starting on the surface of the sphere
+                    ray.Origin.y = payload.WorldPosition.y + payload.WorldNormal.y * 0.000001f;
+                    ray.Origin.z = payload.WorldPosition.z + payload.WorldNormal.z * 0.000001f;
 
                 }
             }
@@ -204,7 +219,8 @@ int main(int argc, char **argv) {
     spheres[0] = (Sphere) {{0, -100.5, 0}, 100, 1};
     spheres[1] = (Sphere) {{-1, 0.2, 0}, 0.5, 0};
     spheres[2] = (Sphere) {{60, 100, -60}, 50, 4};
-    Snowman(spheres + 3, (Vector) {0.0f, 0.0f, 0.0f});
+    spheres[3] = (Sphere) {{0, 0.3, 0}, 0.5, 6};
+    //Snowman(spheres + 3, (Vector) {0.0f, 0.0f, 0.0f});
     
 
 
