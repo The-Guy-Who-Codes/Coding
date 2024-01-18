@@ -48,14 +48,14 @@ typedef struct Sphere {
 } Sphere;
 
 
-/*Material materials[] = {{{1, 1, 1}, {0, 0, 0}, 0, METALLIC, 0.0, FLT_MAX}, // 0: mirror
+Material materials[] = {{{1, 1, 1}, {0, 0, 0}, 0, METALLIC, 0.0, FLT_MAX}, // 0: mirror
 {{0.8, 0.8, 0.8}, {0.8, 0.8, 0.8}, 0, LAMBERTIAN, FLT_MAX, FLT_MAX}, // 1: matte white
 {{0.1, 0.1, 0.1}, {0.1, 0.1, 0.1}, 0, LAMBERTIAN, FLT_MAX, FLT_MAX}, // 2: matte black
 {{0.77, 0.36, 0.15}, {0.77, 0.36, 0.15}, 0, LAMBERTIAN,FLT_MAX, FLT_MAX}, // 3: matte orange
 {{0.8, 0.5, 0.2}, {0.8, 0.5, 0.2}, 2.0, LAMBERTIAN, FLT_MAX, FLT_MAX},  // 4: orange lightsource
 {{0.2, 0.3, 0.7}, {0.2, 0.3, 0.7}, 0, LAMBERTIAN, FLT_MAX, FLT_MAX}, // 5: blueish
 {{0.2, 0.3, 0.7}, {0.2, 0.3, 0.7}, 0, DIELECTRIC, FLT_MAX, 1.5} // 6: dielectric glass
-};*/
+};
 
 
 

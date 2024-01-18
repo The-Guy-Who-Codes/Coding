@@ -16,10 +16,10 @@
 #define ConvertToARGB(a, r, g, b) (((uint8_t) (a * 255.0f)) << 24 | ((uint8_t) (r * 255.0f)) << 16 | ((uint8_t) (g * 255.0f)) << 8 | ((uint8_t) (b * 255.0f)))
 #define VectorToARGB(albedo) ((0xff) << 24 | ((uint8_t) (albedo.x * 255.0f)) << 16 | ((uint8_t) (albedo.y * 255.0f)) << 8 | ((uint8_t) (albedo.z * 255.0f)))
 #define VectorToARGB_Clamp(albedo) ((0xff) << 24 | ((uint8_t) (clamp(albedo.x, 0, 1) * 255.0f)) << 16 | ((uint8_t) (clamp(albedo.y, 0, 1) * 255.0f)) << 8 | ((uint8_t) (clamp(albedo.z, 0, 1) * 255.0f)))
-#define SCREEN_WIDTH 1024 //640
-#define SCREEN_HEIGHT 720 //480
+#define SCREEN_WIDTH 640//1024 //640
+#define SCREEN_HEIGHT 480//720 //480
 #define MAX_REFLECTIONS 10
-#define SPHERE_COUNT 202
+#define SPHERE_COUNT 4
 #define pixelsPerUnit ((float) SCREEN_HEIGHT / 2.0f)
 
 #define XToUV(x) (((float) x - SCREEN_WIDTH / 2.0f) / pixelsPerUnit)
@@ -118,7 +118,7 @@ uint32_t PerPixel(float x, float y, Sphere* spheres, Vector lightSource, uint64_
         // define the ray comming from the pixel
         Ray ray;
         // FRONT VIEW
-        ray.Origin = (Vector) {0, 2, -3};
+        ray.Origin = (Vector) {0, 0.5, -1.5};
         ray.Direction = normalize((Vector) {x + random_float(seed) * 0.005f, y + random_float(seed) * 0.005f, 1.0f});
         
         // SIDE VIEW
@@ -203,6 +203,18 @@ float randColour() {
 
 int main(int argc, char **argv) {
 
+
+    Material materials[] = {{{1, 1, 1}, {0, 0, 0}, 0, METALLIC, 0.0, FLT_MAX}, // 0: mirror
+    {{0.8, 0.8, 0.8}, {0.8, 0.8, 0.8}, 0, LAMBERTIAN, FLT_MAX, FLT_MAX}, // 1: matte white
+    {{0.1, 0.1, 0.1}, {0.1, 0.1, 0.1}, 0, LAMBERTIAN, FLT_MAX, FLT_MAX}, // 2: matte black
+    {{0.77, 0.36, 0.15}, {0.77, 0.36, 0.15}, 0, LAMBERTIAN,FLT_MAX, FLT_MAX}, // 3: matte orange
+    {{0.8, 0.5, 0.2}, {0.8, 0.5, 0.2}, 2.0, LAMBERTIAN, FLT_MAX, FLT_MAX},  // 4: orange lightsource
+    {{0.2, 0.3, 0.7}, {0.2, 0.3, 0.7}, 0, LAMBERTIAN, FLT_MAX, FLT_MAX}, // 5: blueish
+    {{0.2, 0.3, 0.7}, {0.2, 0.3, 0.7}, 0, DIELECTRIC, FLT_MAX, 1.5} // 6: dielectric glass
+    };
+
+
+
     // create pixel array and screen buffer
     uint64_t PixelCount = SCREEN_WIDTH * SCREEN_HEIGHT;
     int pitch = 4 * SCREEN_WIDTH; // 4 is the number of bytes used for colour information per pixel
@@ -214,52 +226,24 @@ int main(int argc, char **argv) {
     
     Sphere* spheres = NULL;
 
-    Material* materials = NULL;
+    //Material* materials = NULL;
 
     pixelsX = malloc(sizeof(float) * PixelCount);
     pixelsY = malloc(sizeof(float) * PixelCount);
     screen = malloc(sizeof(uint32_t) * PixelCount);
     
     spheres = malloc(sizeof(Sphere) * SPHERE_COUNT);
-    materials = malloc(sizeof(Material) * SPHERE_COUNT);
+    //materials = malloc(sizeof(Material) * SPHERE_COUNT);
 
-    /*spheres[1] = (Sphere) {{-1, 0.2, 0}, 0.5, 0};
+    spheres[0] = (Sphere) {{0, -1000, 0}, 1000, 1};
+    spheres[1] = (Sphere) {{-1, 0.5, 0}, 0.5, 0};
     spheres[2] = (Sphere) {{60, 100, -60}, 50, 4};
-    spheres[3] = (Sphere) {{0, 0.3, 0}, 0.5, 6};*/
+    spheres[3] = (Sphere) {{0, 0.5, 0}, 0.5, 5};
     //Snowman(spheres + 3, (Vector) {0.0f, 0.0f, 0.0f});
     
     uint32_t seed = 0x01a35f4;
     
-    // ground
-    spheres[0] = (Sphere) {{0, -1000, 0}, 1000, 0};
-    materials[0] = (Material) {{0.5, 0.5, 0.5}, {0, 0, 0}, 0, LAMBERTIAN, FLT_MAX, FLT_MAX};
-
-    materials[1] = (Material) {{0.5, 0.5, 0.5}, {0, 0, 0}, 0, DIELECTRIC, FLT_MAX, 1.5};
-    spheres[1] = (Sphere) {{-2, 1, 4}, 1, 2};
-
-    materials[2] = (Material) {{0.5, 0.5, 0.5}, {0, 0, 0}, 0, LAMBERTIAN, FLT_MAX, FLT_MAX};
-    spheres[2] = (Sphere) {{0, 1, 2}, 1, 1};
-
-    materials[3] = (Material) {{0.7, 0.6, 0.5}, {0, 0, 0}, 0, METALLIC, 0.0, FLT_MAX};
-    spheres[3] = (Sphere) {{2, 1, 0}, 1, 3};
-
-    for (int i = 4; i < 90; i++) {
-        materials[i] = (Material) {{random_float(&seed), random_float(&seed), random_float(&seed)}, {0, 0, 0}, 0, METALLIC, random_float(&seed) / 2.0, FLT_MAX};
-        spheres[i] = (Sphere) {{(random_float(&seed) -0.5) * 20, 0.2, (random_float(&seed)) * 10}, 0.2, i};
-    }
-    for (int i = 90; i < 180; i++) {
-        materials[i] = (Material) {{random_float(&seed), random_float(&seed), random_float(&seed)}, {0, 0, 0}, 0, LAMBERTIAN, 0.0, FLT_MAX};
-        spheres[i] = (Sphere) {{(random_float(&seed) -0.5) * 20, 0.2, (random_float(&seed)) * 10}, 0.2, i};  
-    }
-    for (int i = 180; i < 201; i++) {
-        materials[i] = (Material) {{random_float(&seed), random_float(&seed), random_float(&seed)}, {0, 0, 0}, 0, DIELECTRIC, 0.0, 1.5};
-        spheres[i] = (Sphere) {{(random_float(&seed) -0.5) * 20, 0.2, (random_float(&seed)) * 10}, 0.2, i};  
-    }
-
-    materials[201] = (Material) {{0.8, 0.5, 0.2}, {0.8, 0.5, 0.2}, 2.0, LAMBERTIAN, FLT_MAX, FLT_MAX};
-    spheres[201] = (Sphere) {{60, 100, -60}, 50, 201};
-
-
+    //RandomSpheres(spheres, materials);
 
     Vector* realColours = malloc(sizeof(Vector) * PixelCount);
 
@@ -330,13 +314,13 @@ int main(int argc, char **argv) {
     free(pixelsX);
     free(pixelsY);
     free(spheres);
-    free(materials);
+    //free(materials);
 
     screen = NULL;
     pixelsX = NULL;
     pixelsY = NULL;
     spheres = NULL;
-    materials = NULL;
+    //materials = NULL;
 
     return 0;
 }
